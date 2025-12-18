@@ -1,0 +1,1367 @@
+{
+	"info": {
+		"_postman_id": "fashion-ecommerce-api",
+		"name": "Fashion Ecommerce API",
+		"description": "Complete API collection for Fashion Ecommerce Backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{firebase_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000/api",
+			"type": "string"
+		},
+		{
+			"key": "firebase_token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"idToken\": \"{{firebase_token}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Google Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"idToken\": \"{{firebase_token}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/google",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "google"]
+						}
+					}
+				},
+				{
+					"name": "Apple Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"idToken\": \"{{firebase_token}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/apple",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "apple"]
+						}
+					}
+				},
+				{
+					"name": "Get Me",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/me",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "me"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/me",
+							"host": ["{{base_url}}"],
+							"path": ["users", "me"]
+						}
+					}
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Doe\",\n  \"phone\": \"+1234567890\",\n  \"language\": \"en\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/users/me",
+							"host": ["{{base_url}}"],
+							"path": ["users", "me"]
+						}
+					}
+				},
+				{
+					"name": "Update FCM Token",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fcmToken\": \"your-fcm-token-here\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/users/me/fcm-token",
+							"host": ["{{base_url}}"],
+							"path": ["users", "me", "fcm-token"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "Get All Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/products?language=en&categoryId=category-id&subCategoryId=subcategory-id&minPrice=10&maxPrice=100",
+							"host": ["{{base_url}}"],
+							"path": ["products"],
+							"query": [
+								{
+									"key": "language",
+									"value": "en"
+								},
+								{
+									"key": "categoryId",
+									"value": "category-id"
+								},
+								{
+									"key": "subCategoryId",
+									"value": "subcategory-id"
+								},
+								{
+									"key": "minPrice",
+									"value": "10"
+								},
+								{
+									"key": "maxPrice",
+									"value": "100"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Product Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/products/:id?language=en",
+							"host": ["{{base_url}}"],
+							"path": ["products", ":id"],
+							"query": [
+								{
+									"key": "language",
+									"value": "en"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "product-id-here"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Product (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": {\n    \"ar\": \"اسم المنتج\",\n    \"en\": \"Product Name\"\n  },\n  \"description\": {\n    \"ar\": \"وصف المنتج\",\n    \"en\": \"Product Description\"\n  },\n  \"images\": [\"https://example.com/image1.jpg\"],\n  \"price\": 100,\n  \"currency\": \"EGP\",\n  \"sizes\": [\"size-id-1\", \"size-id-2\"],\n  \"colors\": [\"color-id-1\", \"color-id-2\"],\n  \"categoryId\": \"category-id-here\",\n  \"subCategoryId\": \"subcategory-id-here\",\n  \"isActive\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/products",
+							"host": ["{{base_url}}"],
+							"path": ["products"]
+						}
+					}
+				},
+				{
+					"name": "Update Product (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"price\": 120,\n  \"isActive\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/products/:id",
+							"host": ["{{base_url}}"],
+							"path": ["products", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "product-id-here"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Product (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/products/:id",
+							"host": ["{{base_url}}"],
+							"path": ["products", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "product-id-here"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Colors",
+			"item": [
+				{
+					"name": "Get All Colors",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/colors",
+							"host": ["{{base_url}}"],
+							"path": ["colors"]
+						}
+					}
+				},
+				{
+					"name": "Get Color by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/colors/:id",
+							"host": ["{{base_url}}"],
+							"path": ["colors", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "color-id-here"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Color (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Red\",\n  \"hexCode\": \"#FF0000\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/colors",
+							"host": ["{{base_url}}"],
+							"path": ["colors"]
+						}
+					}
+				},
+				{
+					"name": "Update Color (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Dark Red\",\n  \"hexCode\": \"#CC0000\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/colors/:id",
+							"host": ["{{base_url}}"],
+							"path": ["colors", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "color-id-here"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Color (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/colors/:id",
+							"host": ["{{base_url}}"],
+							"path": ["colors", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "color-id-here"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Sizes",
+			"item": [
+				{
+					"name": "Get All Sizes",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sizes",
+							"host": ["{{base_url}}"],
+							"path": ["sizes"]
+						}
+					}
+				},
+				{
+					"name": "Get Size by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sizes/:id",
+							"host": ["{{base_url}}"],
+							"path": ["sizes", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "size-id-here"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Size (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Large\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/sizes",
+							"host": ["{{base_url}}"],
+							"path": ["sizes"]
+						}
+					}
+				},
+				{
+					"name": "Update Size (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Extra Large\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/sizes/:id",
+							"host": ["{{base_url}}"],
+							"path": ["sizes", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "size-id-here"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Size (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sizes/:id",
+							"host": ["{{base_url}}"],
+							"path": ["sizes", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "size-id-here"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Categories",
+			"item": [
+				{
+					"name": "Get All Categories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/categories?language=en",
+							"host": ["{{base_url}}"],
+							"path": ["categories"],
+							"query": [
+								{
+									"key": "language",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Category by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/categories/:id?language=en",
+							"host": ["{{base_url}}"],
+							"path": ["categories", ":id"],
+							"query": [
+								{
+									"key": "language",
+									"value": "en"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "category-id-here"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Category (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": {\n    \"ar\": \"فئة\",\n    \"en\": \"Category\"\n  },\n  \"image\": \"https://example.com/category-image.jpg\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/categories",
+							"host": ["{{base_url}}"],
+							"path": ["categories"]
+						}
+					}
+				},
+				{
+					"name": "Update Category (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": {\n    \"ar\": \"فئة محدثة\",\n    \"en\": \"Updated Category\"\n  },\n  \"image\": \"https://example.com/updated-image.jpg\",\n  \"isActive\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/categories/:id",
+							"host": ["{{base_url}}"],
+							"path": ["categories", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "category-id-here"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Category (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/categories/:id",
+							"host": ["{{base_url}}"],
+							"path": ["categories", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "category-id-here"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "SubCategories",
+			"item": [
+				{
+					"name": "Get All SubCategories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/subcategories?categoryId=category-id&language=en",
+							"host": ["{{base_url}}"],
+							"path": ["subcategories"],
+							"query": [
+								{
+									"key": "categoryId",
+									"value": "category-id",
+									"description": "Optional: Filter by category"
+								},
+								{
+									"key": "language",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get SubCategories by Category",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/subcategories/category/:categoryId?language=en",
+							"host": ["{{base_url}}"],
+							"path": ["subcategories", "category", ":categoryId"],
+							"query": [
+								{
+									"key": "language",
+									"value": "en"
+								}
+							],
+							"variable": [
+								{
+									"key": "categoryId",
+									"value": "category-id-here"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get SubCategory by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/subcategories/:id?language=en",
+							"host": ["{{base_url}}"],
+							"path": ["subcategories", ":id"],
+							"query": [
+								{
+									"key": "language",
+									"value": "en"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "subcategory-id-here"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create SubCategory (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": {\n    \"ar\": \"فئة فرعية\",\n    \"en\": \"SubCategory\"\n  },\n  \"categoryId\": \"category-id-here\",\n  \"image\": \"https://example.com/subcategory-image.jpg\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/subcategories",
+							"host": ["{{base_url}}"],
+							"path": ["subcategories"]
+						}
+					}
+				},
+				{
+					"name": "Update SubCategory (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": {\n    \"ar\": \"فئة فرعية محدثة\",\n    \"en\": \"Updated SubCategory\"\n  },\n  \"categoryId\": \"category-id-here\",\n  \"image\": \"https://example.com/updated-image.jpg\",\n  \"isActive\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/subcategories/:id",
+							"host": ["{{base_url}}"],
+							"path": ["subcategories", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "subcategory-id-here"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete SubCategory (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/subcategories/:id",
+							"host": ["{{base_url}}"],
+							"path": ["subcategories", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "subcategory-id-here"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Cart",
+			"item": [
+				{
+					"name": "Get Cart",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cart?language=en",
+							"host": ["{{base_url}}"],
+							"path": ["cart"],
+							"query": [
+								{
+									"key": "language",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Add to Cart",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"productId\": \"product-id-here\",\n  \"size\": \"size-id-here\",\n  \"color\": \"color-id-here\",\n  \"quantity\": 2\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/cart/add",
+							"host": ["{{base_url}}"],
+							"path": ["cart", "add"]
+						}
+					}
+				},
+				{
+					"name": "Update Cart Item",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"quantity\": 3\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/cart/items/:index",
+							"host": ["{{base_url}}"],
+							"path": ["cart", "items", ":index"],
+							"variable": [
+								{
+									"key": "index",
+									"value": "0"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Remove from Cart",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cart/items/:index",
+							"host": ["{{base_url}}"],
+							"path": ["cart", "items", ":index"],
+							"variable": [
+								{
+									"key": "index",
+									"value": "0"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Clear Cart",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cart/clear",
+							"host": ["{{base_url}}"],
+							"path": ["cart", "clear"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Offers",
+			"item": [
+				{
+					"name": "Get All Offers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/offers",
+							"host": ["{{base_url}}"],
+							"path": ["offers"]
+						}
+					}
+				},
+				{
+					"name": "Get Active Offers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/offers/active",
+							"host": ["{{base_url}}"],
+							"path": ["offers", "active"]
+						}
+					}
+				},
+				{
+					"name": "Get Offer by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/offers/:id",
+							"host": ["{{base_url}}"],
+							"path": ["offers", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "offer-id-here"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Offer (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": {\n    \"ar\": \"عرض خاص\",\n    \"en\": \"Special Offer\"\n  },\n  \"type\": \"percentage\",\n  \"value\": 20,\n  \"scope\": \"global\",\n  \"startDate\": \"2024-01-01T00:00:00Z\",\n  \"endDate\": \"2024-12-31T23:59:59Z\",\n  \"isActive\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/offers",
+							"host": ["{{base_url}}"],
+							"path": ["offers"]
+						}
+					}
+				},
+				{
+					"name": "Update Offer (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"value\": 25,\n  \"isActive\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/offers/:id",
+							"host": ["{{base_url}}"],
+							"path": ["offers", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "offer-id-here"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Offer (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/offers/:id",
+							"host": ["{{base_url}}"],
+							"path": ["offers", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "offer-id-here"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Orders",
+			"item": [
+				{
+					"name": "Create Order",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"shippingAddress\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"Cairo\",\n    \"country\": \"Egypt\",\n    \"zipCode\": \"12345\"\n  },\n  \"paymentMethod\": \"cash_on_delivery\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/orders",
+							"host": ["{{base_url}}"],
+							"path": ["orders"]
+						}
+					}
+				},
+				{
+					"name": "Get My Orders",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/orders",
+							"host": ["{{base_url}}"],
+							"path": ["orders"]
+						}
+					}
+				},
+				{
+					"name": "Get Order by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/orders/:id",
+							"host": ["{{base_url}}"],
+							"path": ["orders", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "order-id-here"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Order Status (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"shipped\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/orders/:id/status",
+							"host": ["{{base_url}}"],
+							"path": ["orders", ":id", "status"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "order-id-here"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get All Orders (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/orders/admin/all",
+							"host": ["{{base_url}}"],
+							"path": ["orders", "admin", "all"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Payments",
+			"item": [
+				{
+					"name": "Create JumiaPay Session",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"orderId\": \"order-id-here\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/payments/jumiapay/create",
+							"host": ["{{base_url}}"],
+							"path": ["payments", "jumiapay", "create"]
+						}
+					}
+				},
+				{
+					"name": "JumiaPay Callback",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/payments/jumiapay/callback?transactionId=xxx&status=success",
+							"host": ["{{base_url}}"],
+							"path": ["payments", "jumiapay", "callback"],
+							"query": [
+								{
+									"key": "transactionId",
+									"value": "xxx"
+								},
+								{
+									"key": "status",
+									"value": "success"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Confirm Cash on Delivery",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"orderId\": \"order-id-here\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/payments/cash-on-delivery/confirm",
+							"host": ["{{base_url}}"],
+							"path": ["payments", "cash-on-delivery", "confirm"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Get Dashboard Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/dashboard",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "dashboard"]
+						}
+					}
+				},
+				{
+					"name": "Create Product (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": {\n    \"ar\": \"اسم المنتج\",\n    \"en\": \"Product Name\"\n  },\n  \"description\": {\n    \"ar\": \"وصف المنتج\",\n    \"en\": \"Product Description\"\n  },\n  \"images\": [\"https://example.com/image1.jpg\"],\n  \"price\": 100,\n  \"currency\": \"EGP\",\n  \"sizes\": [\"size-id-1\", \"size-id-2\"],\n  \"colors\": [\"color-id-1\", \"color-id-2\"],\n  \"categoryId\": \"category-id-here\",\n  \"subCategoryId\": \"subcategory-id-here\",\n  \"isActive\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/products",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "products"]
+						}
+					}
+				},
+				{
+					"name": "Update Product (Admin)",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"price\": 120\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/products/:id",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "products", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "product-id-here"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Product (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/products/:id",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "products", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "product-id-here"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Offer (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": {\n    \"ar\": \"عرض خاص\",\n    \"en\": \"Special Offer\"\n  },\n  \"type\": \"percentage\",\n  \"value\": 20,\n  \"scope\": \"global\",\n  \"startDate\": \"2024-01-01T00:00:00Z\",\n  \"endDate\": \"2024-12-31T23:59:59Z\",\n  \"isActive\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/offers",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "offers"]
+						}
+					}
+				},
+				{
+					"name": "Update Offer (Admin)",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"value\": 25\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/offers/:id",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "offers", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "offer-id-here"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Offer (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/offers/:id",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "offers", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "offer-id-here"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get All Orders (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/orders",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "orders"]
+						}
+					}
+				},
+				{
+					"name": "Get Order by ID (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/orders/:id",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "orders", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "order-id-here"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Order Status (Admin)",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"shipped\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/orders/:id/status",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "orders", ":id", "status"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "order-id-here"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Notifications",
+			"item": [
+				{
+					"name": "Test Notification",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Test Notification\",\n  \"body\": \"This is a test notification\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/notifications/test",
+							"host": ["{{base_url}}"],
+							"path": ["notifications", "test"]
+						}
+					}
+				}
+			]
+		}
+	]
+}
