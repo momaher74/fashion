@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Multilingual } from '../common/interfaces/multilingual.interface';
+import { ProductType } from '../common/enums/product-type.enum';
 
 export type ProductDocument = Product & Document;
 
@@ -35,6 +36,16 @@ export class Product {
 
   @Prop({ default: true })
   isActive: boolean;
+
+  @Prop({
+    type: String,
+    enum: ProductType,
+    default: ProductType.NORMAL,
+  })
+  type: ProductType;
+
+  @Prop({ default: 0 })
+  views: number; // Track product views for popularity
 
   createdAt?: Date;
   updatedAt?: Date;

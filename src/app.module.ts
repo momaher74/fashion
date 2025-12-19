@@ -16,6 +16,8 @@ import { ColorModule } from './color/color.module';
 import { SizeModule } from './size/size.module';
 import { CategoryModule } from './category/category.module';
 import { SubCategoryModule } from './subcategory/subcategory.module';
+import { BannerModule } from './banner/banner.module';
+import { HomeModule } from './home/home.module';
 
 @Module({
   imports: [
@@ -44,6 +46,8 @@ import { SubCategoryModule } from './subcategory/subcategory.module';
     SizeModule,
     CategoryModule,
     SubCategoryModule,
+    BannerModule,
+    HomeModule,
   ],
 })
 export class AppModule {}

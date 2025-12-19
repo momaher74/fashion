@@ -6,9 +6,11 @@ import {
   IsBoolean,
   IsOptional,
   ValidateNested,
+  IsEnum,
   Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { ProductType } from '../../common/enums/product-type.enum';
 
 class MultilingualDto {
   @IsString()
@@ -66,5 +68,9 @@ export class CreateProductDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
+
+  @IsEnum(ProductType)
+  @IsOptional()
+  type?: ProductType;
 }
 

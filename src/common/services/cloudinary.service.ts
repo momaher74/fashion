@@ -13,12 +13,17 @@ export class CloudinaryService {
     });
   }
 
-  async uploadImage(file: Express.Multer.File): Promise<string> {
+  async uploadFile(
+    file: Express.Multer.File,
+    options: { folder?: string; resourceType?: 'image' | 'video' | 'auto' } = {},
+  ): Promise<string> {
+    const folder = options.folder ?? 'fashion-ecommerce';
+    const resource_type = options.resourceType ?? 'auto';
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
-          folder: 'fashion-ecommerce',
-          resource_type: 'image',
+          folder,
+          resource_type,
         },
         (error, result) => {
           if (error) {
@@ -33,9 +38,17 @@ export class CloudinaryService {
     });
   }
 
+  async uploadImage(file: Express.Multer.File): Promise<string> {
+    return this.uploadFile(file, { resourceType: 'image' });
+  }
+
   async uploadMultipleImages(files: Express.Multer.File[]): Promise<string[]> {
     const uploadPromises = files.map((file) => this.uploadImage(file));
     return Promise.all(uploadPromises);
+  }
+
+  async uploadVideo(file: Express.Multer.File): Promise<string> {
+    return this.uploadFile(file, { resourceType: 'video' });
   }
 
   async deleteImage(publicId: string): Promise<void> {

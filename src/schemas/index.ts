@@ -9,4 +9,5 @@ export * from './color.schema';
 export * from './size.schema';
 export * from './category.schema';
 export * from './subcategory.schema';
+export * from './banner.schema';
 

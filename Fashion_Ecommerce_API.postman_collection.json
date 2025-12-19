@@ -29,6 +29,30 @@
 	],
 	"item": [
 		{
+			"name": "Home",
+			"item": [
+				{
+					"name": "Get Home Data",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Language",
+								"value": "ar",
+								"description": "Language preference: en or ar"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/home",
+							"host": ["{{base_url}}"],
+							"path": ["home"]
+						},
+						"description": "Get home page data including categories, banners, popular products, and recommended products. Language is taken from X-Language header (en or ar). Optional authentication for personalized recommendations."
+					}
+				}
+			]
+		},
+		{
 			"name": "Auth",
 			"item": [
 				{
@@ -390,7 +414,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": {\n    \"ar\": \"اسم المنتج\",\n    \"en\": \"Product Name\"\n  },\n  \"description\": {\n    \"ar\": \"وصف المنتج\",\n    \"en\": \"Product Description\"\n  },\n  \"images\": [\"https://example.com/image1.jpg\"],\n  \"price\": 100,\n  \"currency\": \"EGP\",\n  \"sizes\": [\"size-id-1\", \"size-id-2\"],\n  \"colors\": [\"color-id-1\", \"color-id-2\"],\n  \"categoryId\": \"category-id-here\",\n  \"subCategoryId\": \"subcategory-id-here\",\n  \"isActive\": true\n}",
+							"raw": "{\n  \"name\": {\n    \"ar\": \"اسم المنتج\",\n    \"en\": \"Product Name\"\n  },\n  \"description\": {\n    \"ar\": \"وصف المنتج\",\n    \"en\": \"Product Description\"\n  },\n  \"images\": [\"https://example.com/image1.jpg\"],\n  \"price\": 100,\n  \"currency\": \"EGP\",\n  \"sizes\": [\"size-id-1\", \"size-id-2\"],\n  \"colors\": [\"color-id-1\", \"color-id-2\"],\n  \"categoryId\": \"category-id-here\",\n  \"subCategoryId\": \"subcategory-id-here\",\n  \"isActive\": true,\n  \"type\": \"normal\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -402,7 +426,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["products"]
 						},
-						"description": "Create a new product. Requires ADMIN role and JWT token."
+						"description": "Create a new product. Type can be: 'normal' (default), 'popular', or 'recommended'. Requires ADMIN role and JWT token."
 					}
 				},
 				{
@@ -417,7 +441,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"price\": 120,\n  \"isActive\": false\n}",
+							"raw": "{\n  \"price\": 120,\n  \"isActive\": false,\n  \"type\": \"popular\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
