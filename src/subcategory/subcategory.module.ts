@@ -3,12 +3,14 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { SubCategoryController } from './subcategory.controller';
 import { SubCategoryService } from './subcategory.service';
 import { SubCategory, SubCategorySchema } from '../schemas/subcategory.schema';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: SubCategory.name, schema: SubCategorySchema },
     ]),
+    UserModule,
   ],
   controllers: [SubCategoryController],
   providers: [SubCategoryService],

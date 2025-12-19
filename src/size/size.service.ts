@@ -31,7 +31,7 @@ export class SizeService {
       new: true,
     });
     if (!size) {
-      throw new NotFoundException('Size not found');
+      throw new NotFoundException('size.not_found');
     }
     return size;
   }
@@ -39,7 +39,7 @@ export class SizeService {
   async remove(id: string): Promise<void> {
     const size = await this.sizeModel.findByIdAndDelete(id);
     if (!size) {
-      throw new NotFoundException('Size not found');
+      throw new NotFoundException('size.not_found');
     }
   }
 }

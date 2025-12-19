@@ -32,18 +32,18 @@ export class OrderService {
     });
 
     if (!cart || cart.items.length === 0) {
-      throw new BadRequestException('Cart is empty');
+      throw new BadRequestException('cart.empty');
     }
 
     const user = await this.userService.findById(userId);
     const offers = await this.offerModel.find({ isActive: true }).exec();
-    const language = user.language || Language.EN;
+    const language = user.language || Language.AR;
 
     const orderItems = await Promise.all(
       cart.items.map(async (item) => {
         const product = await this.productModel.findById(item.productId);
         if (!product) {
-          throw new NotFoundException(`Product ${item.productId} not found`);
+          throw new NotFoundException('product.not_found');
         }
 
         const formatted = this.productFormatter.formatProduct(

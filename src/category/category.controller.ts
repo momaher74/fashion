@@ -7,34 +7,34 @@ import {
   Param,
   Delete,
   UseGuards,
-  Query,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
-import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/enums/role.enum';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Language } from '../common/enums/language.enum';
+import { LanguageHeader } from '../common/decorators/language.decorator';
 
 @Controller('categories')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Get()
-  async findAll(@Query('language') language?: Language) {
-    return this.categoryService.findAll(language || Language.EN);
+  async findAll(@LanguageHeader() language: Language) {
+    return this.categoryService.findAll(language);
   }
 
   @Get(':id')
   async findOne(
     @Param('id') id: string,
-    @Query('language') language?: Language,
+    @LanguageHeader() language: Language,
   ) {
-    return this.categoryService.findById(id, language || Language.EN);
+    return this.categoryService.findById(id, language);
   }
 
   @Post()
-  @UseGuards(FirebaseAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   async create(
     @Body('name') name: { ar: string; en: string },
@@ -44,7 +44,7 @@ export class CategoryController {
   }
 
   @Patch(':id')
-  @UseGuards(FirebaseAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   async update(
     @Param('id') id: string,
@@ -58,7 +58,7 @@ export class CategoryController {
   }
 
   @Delete(':id')
-  @UseGuards(FirebaseAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   async remove(@Param('id') id: string) {
     await this.categoryService.remove(id);

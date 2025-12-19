@@ -13,13 +13,13 @@ export class UserService {
   async findById(id: string): Promise<UserDocument> {
     const user = await this.userModel.findById(id);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('auth.user_not_found');
     }
     return user;
   }
 
-  async findByFirebaseUid(firebaseUid: string): Promise<UserDocument | null> {
-    return this.userModel.findOne({ firebaseUid });
+  async findByEmail(email: string): Promise<UserDocument | null> {
+    return this.userModel.findOne({ email });
   }
 
   async update(id: string, updateDto: UpdateUserDto): Promise<UserDocument> {

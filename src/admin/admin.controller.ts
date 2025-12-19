@@ -13,7 +13,7 @@ import { AdminService } from './admin.service';
 import { ProductService } from '../product/product.service';
 import { OffersService } from '../offers/offers.service';
 import { OrderService } from '../order/order.service';
-import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/enums/role.enum';
@@ -24,7 +24,7 @@ import { UpdateOfferDto } from '../offers/dto/update-offer.dto';
 import { UpdateOrderStatusDto } from '../order/dto/update-order-status.dto';
 
 @Controller('admin')
-@UseGuards(FirebaseAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.ADMIN)
 export class AdminController {
   constructor(

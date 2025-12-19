@@ -31,7 +31,7 @@ export class NotificationService {
       return;
     }
 
-    const language = user.language || Language.EN;
+    const language = user.language || Language.AR;
     const title = message.title[language] || message.title.en;
     const body = message.body[language] || message.body.en;
 
@@ -67,7 +67,7 @@ export class NotificationService {
     }
 
     const messages = users.map((user) => {
-      const language = user.language || Language.EN;
+      const language = user.language || Language.AR;
       const title = message.title[language] || message.title.en;
       const body = message.body[language] || message.body.en;
 

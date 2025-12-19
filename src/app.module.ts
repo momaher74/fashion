@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import * as admin from 'firebase-admin';
-import * as path from 'path';
 
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
@@ -48,36 +46,5 @@ import { SubCategoryModule } from './subcategory/subcategory.module';
     SubCategoryModule,
   ],
 })
-export class AppModule {
-  constructor() {
-    // Initialize Firebase Admin
-    try {
-      const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || 
-        '/Users/youssef/Downloads/compeleecommerceapp-firebase-adminsdk-lsdt9-66876f34da.json';
-      
-      // Try to use file path first
-      try {
-        admin.initializeApp({
-          credential: admin.credential.cert(serviceAccountPath),
-        });
-        console.log('Firebase Admin initialized from file');
-      } catch (fileError) {
-        // Fallback to environment variable JSON string
-        if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-          const serviceAccount = JSON.parse(
-            process.env.FIREBASE_SERVICE_ACCOUNT,
-          );
-          admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
-          });
-          console.log('Firebase Admin initialized from env');
-        } else {
-          throw new Error('Firebase credentials not found');
-        }
-      }
-    } catch (error) {
-      console.error('Firebase Admin initialization error:', error);
-    }
-  }
-}
+export class AppModule {}
 

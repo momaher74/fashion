@@ -30,7 +30,7 @@ export class SubCategoryService {
 
   async findAll(
     categoryId?: string,
-    language: Language = Language.EN,
+    language: Language = Language.AR,
   ): Promise<any[]> {
     const query: any = { isActive: true };
     if (categoryId) {
@@ -61,7 +61,7 @@ export class SubCategoryService {
       .populate('categoryId', 'name')
       .exec();
     if (!subCategory) {
-      throw new NotFoundException('SubCategory not found');
+      throw new NotFoundException('subcategory.not_found');
     }
 
     return {
@@ -82,7 +82,7 @@ export class SubCategoryService {
 
   async findByCategoryId(
     categoryId: string,
-    language: Language = Language.EN,
+    language: Language = Language.AR,
   ): Promise<any[]> {
     return this.findAll(categoryId, language);
   }
@@ -105,7 +105,7 @@ export class SubCategoryService {
       { new: true },
     );
     if (!subCategory) {
-      throw new NotFoundException('SubCategory not found');
+      throw new NotFoundException('subcategory.not_found');
     }
     return subCategory;
   }
@@ -113,7 +113,7 @@ export class SubCategoryService {
   async remove(id: string): Promise<void> {
     const subCategory = await this.subCategoryModel.findByIdAndDelete(id);
     if (!subCategory) {
-      throw new NotFoundException('SubCategory not found');
+      throw new NotFoundException('subcategory.not_found');
     }
   }
 }

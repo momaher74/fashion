@@ -45,7 +45,7 @@ export class ProductService {
 
   async findAll(
     filterDto: FilterProductDto,
-    language: Language = Language.EN,
+    language: Language = Language.AR,
   ) {
     const query: any = { isActive: true };
 
@@ -93,7 +93,7 @@ export class ProductService {
 
   async findOne(
     id: string,
-    language: Language = Language.EN,
+    language: Language = Language.AR,
     userId?: string,
   ) {
     const product = await this.productModel
@@ -103,7 +103,7 @@ export class ProductService {
       .populate('categoryId', 'name')
       .populate('subCategoryId', 'name');
     if (!product) {
-      throw new NotFoundException('Product not found');
+      throw new NotFoundException('product.not_found');
     }
 
     const offers = await this.offerModel.find({ isActive: true }).exec();
@@ -168,7 +168,7 @@ export class ProductService {
       new: true,
     });
     if (!product) {
-      throw new NotFoundException('Product not found');
+      throw new NotFoundException('product.not_found');
     }
     return product;
   }
@@ -176,7 +176,7 @@ export class ProductService {
   async remove(id: string) {
     const product = await this.productModel.findByIdAndDelete(id);
     if (!product) {
-      throw new NotFoundException('Product not found');
+      throw new NotFoundException('product.not_found');
     }
     return { message: 'Product deleted' };
   }

@@ -16,7 +16,7 @@ export class CategoryService {
     return category.save();
   }
 
-  async findAll(language: Language = Language.EN): Promise<any[]> {
+  async findAll(language: Language = Language.AR): Promise<any[]> {
     const categories = await this.categoryModel
       .find({ isActive: true })
       .exec();
@@ -32,10 +32,10 @@ export class CategoryService {
     }));
   }
 
-  async findById(id: string, language: Language = Language.EN): Promise<any> {
+  async findById(id: string, language: Language = Language.AR): Promise<any> {
     const category = await this.categoryModel.findById(id);
     if (!category) {
-      throw new NotFoundException('Category not found');
+      throw new NotFoundException('category.not_found');
     }
     
     return {
@@ -59,7 +59,7 @@ export class CategoryService {
       { new: true },
     );
     if (!category) {
-      throw new NotFoundException('Category not found');
+      throw new NotFoundException('category.not_found');
     }
     return category;
   }
@@ -67,7 +67,7 @@ export class CategoryService {
   async remove(id: string): Promise<void> {
     const category = await this.categoryModel.findByIdAndDelete(id);
     if (!category) {
-      throw new NotFoundException('Category not found');
+      throw new NotFoundException('category.not_found');
     }
   }
 }

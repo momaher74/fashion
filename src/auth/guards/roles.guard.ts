@@ -20,10 +20,10 @@ export class RolesGuard implements CanActivate {
       return true;
     }
     const { user } = context.switchToHttp().getRequest();
-    if (!user?.firebaseUid) {
+    if (!user?.id) {
       return false;
     }
-    const dbUser = await this.userService.findByFirebaseUid(user.firebaseUid);
+    const dbUser = await this.userService.findById(user.id);
     if (!dbUser) {
       return false;
     }

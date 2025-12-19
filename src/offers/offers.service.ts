@@ -39,7 +39,7 @@ export class OffersService {
   async findOne(id: string): Promise<OfferDocument> {
     const offer = await this.offerModel.findById(id).populate('productId');
     if (!offer) {
-      throw new NotFoundException('Offer not found');
+      throw new NotFoundException('offer.not_found');
     }
     return offer;
   }
@@ -57,7 +57,7 @@ export class OffersService {
       new: true,
     });
     if (!offer) {
-      throw new NotFoundException('Offer not found');
+      throw new NotFoundException('offer.not_found');
     }
     return offer;
   }
@@ -65,7 +65,7 @@ export class OffersService {
   async remove(id: string) {
     const offer = await this.offerModel.findByIdAndDelete(id);
     if (!offer) {
-      throw new NotFoundException('Offer not found');
+      throw new NotFoundException('offer.not_found');
     }
     return { message: 'Offer deleted' };
   }

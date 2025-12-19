@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "fashion-ecommerce-api",
 		"name": "Fashion Ecommerce API",
-		"description": "Complete API collection for Fashion Ecommerce Backend",
+		"description": "Complete API collection for Fashion Ecommerce Backend with JWT Authentication",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"auth": {
@@ -10,7 +10,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "{{firebase_token}}",
+				"value": "{{jwt_token}}",
 				"type": "string"
 			}
 		]
@@ -22,7 +22,7 @@
 			"type": "string"
 		},
 		{
-			"key": "firebase_token",
+			"key": "jwt_token",
 			"value": "",
 			"type": "string"
 		}
@@ -32,13 +32,84 @@
 			"name": "Auth",
 			"item": [
 				{
-					"name": "Login",
+					"name": "Register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201 || pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.token) {",
+									"        pm.collectionVariables.set(\"jwt_token\", jsonData.token);",
+									"        console.log(\"JWT token saved to collection variable\");",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Language",
+								"value": "en",
+								"description": "Language preference: en or ar"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"idToken\": \"{{firebase_token}}\"\n}",
+							"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"name\": \"John Doe\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "register"]
+						},
+						"description": "Register a new user with email and password. Language is taken from X-Language header (en or ar)."
+					}
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.token) {",
+									"        pm.collectionVariables.set(\"jwt_token\", jsonData.token);",
+									"        console.log(\"JWT token saved to collection variable\");",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -49,17 +120,45 @@
 							"raw": "{{base_url}}/auth/login",
 							"host": ["{{base_url}}"],
 							"path": ["auth", "login"]
-						}
+						},
+						"description": "Login with email and password"
 					}
 				},
 				{
-					"name": "Google Login",
+					"name": "Google SSO Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.token) {",
+									"        pm.collectionVariables.set(\"jwt_token\", jsonData.token);",
+									"        console.log(\"JWT token saved to collection variable\");",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Language",
+								"value": "en",
+								"description": "Language preference: en or ar"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"idToken\": \"{{firebase_token}}\"\n}",
+							"raw": "{\n  \"idToken\": \"your-google-id-token-here\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -70,17 +169,45 @@
 							"raw": "{{base_url}}/auth/google",
 							"host": ["{{base_url}}"],
 							"path": ["auth", "google"]
-						}
+						},
+						"description": "Login with Google SSO. Replace idToken with actual Google ID token from client. Language is taken from X-Language header (en or ar)."
 					}
 				},
 				{
-					"name": "Apple Login",
+					"name": "Apple SSO Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.token) {",
+									"        pm.collectionVariables.set(\"jwt_token\", jsonData.token);",
+									"        console.log(\"JWT token saved to collection variable\");",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Language",
+								"value": "en",
+								"description": "Language preference: en or ar"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"idToken\": \"{{firebase_token}}\"\n}",
+							"raw": "{\n  \"idToken\": \"your-apple-id-token-here\",\n  \"email\": \"user@example.com\",\n  \"name\": \"John Doe\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -91,7 +218,8 @@
 							"raw": "{{base_url}}/auth/apple",
 							"host": ["{{base_url}}"],
 							"path": ["auth", "apple"]
-						}
+						},
+						"description": "Login with Apple SSO. Replace idToken with actual Apple ID token from client. Language is taken from X-Language header (en or ar)."
 					}
 				},
 				{
@@ -103,7 +231,8 @@
 							"raw": "{{base_url}}/auth/me",
 							"host": ["{{base_url}}"],
 							"path": ["auth", "me"]
-						}
+						},
+						"description": "Get current authenticated user information. Requires JWT token."
 					}
 				}
 			]
@@ -120,17 +249,23 @@
 							"raw": "{{base_url}}/users/me",
 							"host": ["{{base_url}}"],
 							"path": ["users", "me"]
-						}
+						},
+						"description": "Get user profile. Requires JWT token."
 					}
 				},
 				{
 					"name": "Update Profile",
 					"request": {
 						"method": "PUT",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"John Doe\",\n  \"phone\": \"+1234567890\",\n  \"language\": \"en\"\n}",
+							"raw": "{\n  \"name\": \"John Doe Updated\",\n  \"phone\": \"+1234567890\",\n  \"language\": \"en\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -141,14 +276,20 @@
 							"raw": "{{base_url}}/users/me",
 							"host": ["{{base_url}}"],
 							"path": ["users", "me"]
-						}
+						},
+						"description": "Update user profile. Requires JWT token."
 					}
 				},
 				{
 					"name": "Update FCM Token",
 					"request": {
 						"method": "PATCH",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"fcmToken\": \"your-fcm-token-here\"\n}",
@@ -162,7 +303,8 @@
 							"raw": "{{base_url}}/users/me/fcm-token",
 							"host": ["{{base_url}}"],
 							"path": ["users", "me", "fcm-token"]
-						}
+						},
+						"description": "Update FCM token for push notifications. Requires JWT token."
 					}
 				}
 			]
@@ -174,65 +316,78 @@
 					"name": "Get All Products",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "X-Language",
+								"value": "en",
+								"description": "Language preference: en or ar"
+							}
+						],
 						"url": {
-							"raw": "{{base_url}}/products?language=en&categoryId=category-id&subCategoryId=subcategory-id&minPrice=10&maxPrice=100",
+							"raw": "{{base_url}}/products?categoryId=category-id&subCategoryId=subcategory-id&minPrice=10&maxPrice=100",
 							"host": ["{{base_url}}"],
 							"path": ["products"],
 							"query": [
 								{
-									"key": "language",
-									"value": "en"
-								},
-								{
 									"key": "categoryId",
-									"value": "category-id"
+									"value": "category-id",
+									"description": "Optional: Filter by category"
 								},
 								{
 									"key": "subCategoryId",
-									"value": "subcategory-id"
+									"value": "subcategory-id",
+									"description": "Optional: Filter by subcategory"
 								},
 								{
 									"key": "minPrice",
-									"value": "10"
+									"value": "10",
+									"description": "Optional: Minimum price"
 								},
 								{
 									"key": "maxPrice",
-									"value": "100"
+									"value": "100",
+									"description": "Optional: Maximum price"
 								}
 							]
-						}
+						},
+						"description": "Get all products with optional filters. Language is taken from X-Language header (en or ar). Public endpoint."
 					}
 				},
 				{
 					"name": "Get Product Details",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "X-Language",
+								"value": "en",
+								"description": "Language preference: en or ar"
+							}
+						],
 						"url": {
-							"raw": "{{base_url}}/products/:id?language=en",
+							"raw": "{{base_url}}/products/:id",
 							"host": ["{{base_url}}"],
 							"path": ["products", ":id"],
-							"query": [
-								{
-									"key": "language",
-									"value": "en"
-								}
-							],
 							"variable": [
 								{
 									"key": "id",
 									"value": "product-id-here"
 								}
 							]
-						}
+						},
+						"description": "Get product details by ID. Language is taken from X-Language header (en or ar). Public endpoint (optional auth for personalized pricing)."
 					}
 				},
 				{
 					"name": "Create Product (Admin)",
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"name\": {\n    \"ar\": \"اسم المنتج\",\n    \"en\": \"Product Name\"\n  },\n  \"description\": {\n    \"ar\": \"وصف المنتج\",\n    \"en\": \"Product Description\"\n  },\n  \"images\": [\"https://example.com/image1.jpg\"],\n  \"price\": 100,\n  \"currency\": \"EGP\",\n  \"sizes\": [\"size-id-1\", \"size-id-2\"],\n  \"colors\": [\"color-id-1\", \"color-id-2\"],\n  \"categoryId\": \"category-id-here\",\n  \"subCategoryId\": \"subcategory-id-here\",\n  \"isActive\": true\n}",
@@ -246,14 +401,20 @@
 							"raw": "{{base_url}}/products",
 							"host": ["{{base_url}}"],
 							"path": ["products"]
-						}
+						},
+						"description": "Create a new product. Requires ADMIN role and JWT token."
 					}
 				},
 				{
 					"name": "Update Product (Admin)",
 					"request": {
 						"method": "PATCH",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"price\": 120,\n  \"isActive\": false\n}",
@@ -273,7 +434,8 @@
 									"value": "product-id-here"
 								}
 							]
-						}
+						},
+						"description": "Update a product. Requires ADMIN role and JWT token."
 					}
 				},
 				{
@@ -291,464 +453,8 @@
 									"value": "product-id-here"
 								}
 							]
-						}
-					}
-				}
-			]
-		},
-		{
-			"name": "Colors",
-			"item": [
-				{
-					"name": "Get All Colors",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/colors",
-							"host": ["{{base_url}}"],
-							"path": ["colors"]
-						}
-					}
-				},
-				{
-					"name": "Get Color by ID",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/colors/:id",
-							"host": ["{{base_url}}"],
-							"path": ["colors", ":id"],
-							"variable": [
-								{
-									"key": "id",
-									"value": "color-id-here"
-								}
-							]
-						}
-					}
-				},
-				{
-					"name": "Create Color (Admin)",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"Red\",\n  \"hexCode\": \"#FF0000\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
 						},
-						"url": {
-							"raw": "{{base_url}}/colors",
-							"host": ["{{base_url}}"],
-							"path": ["colors"]
-						}
-					}
-				},
-				{
-					"name": "Update Color (Admin)",
-					"request": {
-						"method": "PATCH",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"Dark Red\",\n  \"hexCode\": \"#CC0000\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/colors/:id",
-							"host": ["{{base_url}}"],
-							"path": ["colors", ":id"],
-							"variable": [
-								{
-									"key": "id",
-									"value": "color-id-here"
-								}
-							]
-						}
-					}
-				},
-				{
-					"name": "Delete Color (Admin)",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/colors/:id",
-							"host": ["{{base_url}}"],
-							"path": ["colors", ":id"],
-							"variable": [
-								{
-									"key": "id",
-									"value": "color-id-here"
-								}
-							]
-						}
-					}
-				}
-			]
-		},
-		{
-			"name": "Sizes",
-			"item": [
-				{
-					"name": "Get All Sizes",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/sizes",
-							"host": ["{{base_url}}"],
-							"path": ["sizes"]
-						}
-					}
-				},
-				{
-					"name": "Get Size by ID",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/sizes/:id",
-							"host": ["{{base_url}}"],
-							"path": ["sizes", ":id"],
-							"variable": [
-								{
-									"key": "id",
-									"value": "size-id-here"
-								}
-							]
-						}
-					}
-				},
-				{
-					"name": "Create Size (Admin)",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"Large\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/sizes",
-							"host": ["{{base_url}}"],
-							"path": ["sizes"]
-						}
-					}
-				},
-				{
-					"name": "Update Size (Admin)",
-					"request": {
-						"method": "PATCH",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"Extra Large\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/sizes/:id",
-							"host": ["{{base_url}}"],
-							"path": ["sizes", ":id"],
-							"variable": [
-								{
-									"key": "id",
-									"value": "size-id-here"
-								}
-							]
-						}
-					}
-				},
-				{
-					"name": "Delete Size (Admin)",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/sizes/:id",
-							"host": ["{{base_url}}"],
-							"path": ["sizes", ":id"],
-							"variable": [
-								{
-									"key": "id",
-									"value": "size-id-here"
-								}
-							]
-						}
-					}
-				}
-			]
-		},
-		{
-			"name": "Categories",
-			"item": [
-				{
-					"name": "Get All Categories",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/categories?language=en",
-							"host": ["{{base_url}}"],
-							"path": ["categories"],
-							"query": [
-								{
-									"key": "language",
-									"value": "en"
-								}
-							]
-						}
-					}
-				},
-				{
-					"name": "Get Category by ID",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/categories/:id?language=en",
-							"host": ["{{base_url}}"],
-							"path": ["categories", ":id"],
-							"query": [
-								{
-									"key": "language",
-									"value": "en"
-								}
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": "category-id-here"
-								}
-							]
-						}
-					}
-				},
-				{
-					"name": "Create Category (Admin)",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": {\n    \"ar\": \"فئة\",\n    \"en\": \"Category\"\n  },\n  \"image\": \"https://example.com/category-image.jpg\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/categories",
-							"host": ["{{base_url}}"],
-							"path": ["categories"]
-						}
-					}
-				},
-				{
-					"name": "Update Category (Admin)",
-					"request": {
-						"method": "PATCH",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": {\n    \"ar\": \"فئة محدثة\",\n    \"en\": \"Updated Category\"\n  },\n  \"image\": \"https://example.com/updated-image.jpg\",\n  \"isActive\": true\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/categories/:id",
-							"host": ["{{base_url}}"],
-							"path": ["categories", ":id"],
-							"variable": [
-								{
-									"key": "id",
-									"value": "category-id-here"
-								}
-							]
-						}
-					}
-				},
-				{
-					"name": "Delete Category (Admin)",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/categories/:id",
-							"host": ["{{base_url}}"],
-							"path": ["categories", ":id"],
-							"variable": [
-								{
-									"key": "id",
-									"value": "category-id-here"
-								}
-							]
-						}
-					}
-				}
-			]
-		},
-		{
-			"name": "SubCategories",
-			"item": [
-				{
-					"name": "Get All SubCategories",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/subcategories?categoryId=category-id&language=en",
-							"host": ["{{base_url}}"],
-							"path": ["subcategories"],
-							"query": [
-								{
-									"key": "categoryId",
-									"value": "category-id",
-									"description": "Optional: Filter by category"
-								},
-								{
-									"key": "language",
-									"value": "en"
-								}
-							]
-						}
-					}
-				},
-				{
-					"name": "Get SubCategories by Category",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/subcategories/category/:categoryId?language=en",
-							"host": ["{{base_url}}"],
-							"path": ["subcategories", "category", ":categoryId"],
-							"query": [
-								{
-									"key": "language",
-									"value": "en"
-								}
-							],
-							"variable": [
-								{
-									"key": "categoryId",
-									"value": "category-id-here"
-								}
-							]
-						}
-					}
-				},
-				{
-					"name": "Get SubCategory by ID",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/subcategories/:id?language=en",
-							"host": ["{{base_url}}"],
-							"path": ["subcategories", ":id"],
-							"query": [
-								{
-									"key": "language",
-									"value": "en"
-								}
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": "subcategory-id-here"
-								}
-							]
-						}
-					}
-				},
-				{
-					"name": "Create SubCategory (Admin)",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": {\n    \"ar\": \"فئة فرعية\",\n    \"en\": \"SubCategory\"\n  },\n  \"categoryId\": \"category-id-here\",\n  \"image\": \"https://example.com/subcategory-image.jpg\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/subcategories",
-							"host": ["{{base_url}}"],
-							"path": ["subcategories"]
-						}
-					}
-				},
-				{
-					"name": "Update SubCategory (Admin)",
-					"request": {
-						"method": "PATCH",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": {\n    \"ar\": \"فئة فرعية محدثة\",\n    \"en\": \"Updated SubCategory\"\n  },\n  \"categoryId\": \"category-id-here\",\n  \"image\": \"https://example.com/updated-image.jpg\",\n  \"isActive\": true\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/subcategories/:id",
-							"host": ["{{base_url}}"],
-							"path": ["subcategories", ":id"],
-							"variable": [
-								{
-									"key": "id",
-									"value": "subcategory-id-here"
-								}
-							]
-						}
-					}
-				},
-				{
-					"name": "Delete SubCategory (Admin)",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/subcategories/:id",
-							"host": ["{{base_url}}"],
-							"path": ["subcategories", ":id"],
-							"variable": [
-								{
-									"key": "id",
-									"value": "subcategory-id-here"
-								}
-							]
-						}
+						"description": "Delete a product. Requires ADMIN role and JWT token."
 					}
 				}
 			]
@@ -760,25 +466,31 @@
 					"name": "Get Cart",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "X-Language",
+								"value": "en",
+								"description": "Language preference: en or ar"
+							}
+						],
 						"url": {
-							"raw": "{{base_url}}/cart?language=en",
+							"raw": "{{base_url}}/cart",
 							"host": ["{{base_url}}"],
-							"path": ["cart"],
-							"query": [
-								{
-									"key": "language",
-									"value": "en"
-								}
-							]
-						}
+							"path": ["cart"]
+						},
+						"description": "Get user's cart. Language is taken from X-Language header (en or ar). Requires JWT token."
 					}
 				},
 				{
 					"name": "Add to Cart",
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"productId\": \"product-id-here\",\n  \"size\": \"size-id-here\",\n  \"color\": \"color-id-here\",\n  \"quantity\": 2\n}",
@@ -792,14 +504,20 @@
 							"raw": "{{base_url}}/cart/add",
 							"host": ["{{base_url}}"],
 							"path": ["cart", "add"]
-						}
+						},
+						"description": "Add item to cart. Requires JWT token."
 					}
 				},
 				{
 					"name": "Update Cart Item",
 					"request": {
 						"method": "PATCH",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"quantity\": 3\n}",
@@ -816,10 +534,12 @@
 							"variable": [
 								{
 									"key": "index",
-									"value": "0"
+									"value": "0",
+									"description": "Index of cart item (0-based)"
 								}
 							]
-						}
+						},
+						"description": "Update cart item quantity. Requires JWT token."
 					}
 				},
 				{
@@ -837,7 +557,8 @@
 									"value": "0"
 								}
 							]
-						}
+						},
+						"description": "Remove item from cart. Requires JWT token."
 					}
 				},
 				{
@@ -849,120 +570,8 @@
 							"raw": "{{base_url}}/cart/clear",
 							"host": ["{{base_url}}"],
 							"path": ["cart", "clear"]
-						}
-					}
-				}
-			]
-		},
-		{
-			"name": "Offers",
-			"item": [
-				{
-					"name": "Get All Offers",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/offers",
-							"host": ["{{base_url}}"],
-							"path": ["offers"]
-						}
-					}
-				},
-				{
-					"name": "Get Active Offers",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/offers/active",
-							"host": ["{{base_url}}"],
-							"path": ["offers", "active"]
-						}
-					}
-				},
-				{
-					"name": "Get Offer by ID",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/offers/:id",
-							"host": ["{{base_url}}"],
-							"path": ["offers", ":id"],
-							"variable": [
-								{
-									"key": "id",
-									"value": "offer-id-here"
-								}
-							]
-						}
-					}
-				},
-				{
-					"name": "Create Offer (Admin)",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"title\": {\n    \"ar\": \"عرض خاص\",\n    \"en\": \"Special Offer\"\n  },\n  \"type\": \"percentage\",\n  \"value\": 20,\n  \"scope\": \"global\",\n  \"startDate\": \"2024-01-01T00:00:00Z\",\n  \"endDate\": \"2024-12-31T23:59:59Z\",\n  \"isActive\": true\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
 						},
-						"url": {
-							"raw": "{{base_url}}/offers",
-							"host": ["{{base_url}}"],
-							"path": ["offers"]
-						}
-					}
-				},
-				{
-					"name": "Update Offer (Admin)",
-					"request": {
-						"method": "PATCH",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"value\": 25,\n  \"isActive\": false\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/offers/:id",
-							"host": ["{{base_url}}"],
-							"path": ["offers", ":id"],
-							"variable": [
-								{
-									"key": "id",
-									"value": "offer-id-here"
-								}
-							]
-						}
-					}
-				},
-				{
-					"name": "Delete Offer (Admin)",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/offers/:id",
-							"host": ["{{base_url}}"],
-							"path": ["offers", ":id"],
-							"variable": [
-								{
-									"key": "id",
-									"value": "offer-id-here"
-								}
-							]
-						}
+						"description": "Clear all items from cart. Requires JWT token."
 					}
 				}
 			]
@@ -974,7 +583,12 @@
 					"name": "Create Order",
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"shippingAddress\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"Cairo\",\n    \"country\": \"Egypt\",\n    \"zipCode\": \"12345\"\n  },\n  \"paymentMethod\": \"cash_on_delivery\"\n}",
@@ -988,7 +602,8 @@
 							"raw": "{{base_url}}/orders",
 							"host": ["{{base_url}}"],
 							"path": ["orders"]
-						}
+						},
+						"description": "Create a new order from cart. Requires JWT token."
 					}
 				},
 				{
@@ -1000,7 +615,8 @@
 							"raw": "{{base_url}}/orders",
 							"host": ["{{base_url}}"],
 							"path": ["orders"]
-						}
+						},
+						"description": "Get all orders for current user. Requires JWT token."
 					}
 				},
 				{
@@ -1018,14 +634,20 @@
 									"value": "order-id-here"
 								}
 							]
-						}
+						},
+						"description": "Get order details by ID. Requires JWT token."
 					}
 				},
 				{
 					"name": "Update Order Status (Admin)",
 					"request": {
 						"method": "PATCH",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"status\": \"shipped\"\n}",
@@ -1045,7 +667,8 @@
 									"value": "order-id-here"
 								}
 							]
-						}
+						},
+						"description": "Update order status. Requires ADMIN role and JWT token."
 					}
 				},
 				{
@@ -1057,7 +680,632 @@
 							"raw": "{{base_url}}/orders/admin/all",
 							"host": ["{{base_url}}"],
 							"path": ["orders", "admin", "all"]
-						}
+						},
+						"description": "Get all orders. Requires ADMIN role and JWT token."
+					}
+				}
+			]
+		},
+		{
+			"name": "Colors",
+			"item": [
+				{
+					"name": "Get All Colors",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/colors",
+							"host": ["{{base_url}}"],
+							"path": ["colors"]
+						},
+						"description": "Get all colors. Public endpoint."
+					}
+				},
+				{
+					"name": "Get Color by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/colors/:id",
+							"host": ["{{base_url}}"],
+							"path": ["colors", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "color-id-here"
+								}
+							]
+						},
+						"description": "Get color by ID. Public endpoint."
+					}
+				},
+				{
+					"name": "Create Color (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Red\",\n  \"hexCode\": \"#FF0000\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/colors",
+							"host": ["{{base_url}}"],
+							"path": ["colors"]
+						},
+						"description": "Create a new color. Requires ADMIN role and JWT token."
+					}
+				},
+				{
+					"name": "Update Color (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Dark Red\",\n  \"hexCode\": \"#CC0000\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/colors/:id",
+							"host": ["{{base_url}}"],
+							"path": ["colors", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "color-id-here"
+								}
+							]
+						},
+						"description": "Update a color. Requires ADMIN role and JWT token."
+					}
+				},
+				{
+					"name": "Delete Color (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/colors/:id",
+							"host": ["{{base_url}}"],
+							"path": ["colors", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "color-id-here"
+								}
+							]
+						},
+						"description": "Delete a color. Requires ADMIN role and JWT token."
+					}
+				}
+			]
+		},
+		{
+			"name": "Sizes",
+			"item": [
+				{
+					"name": "Get All Sizes",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sizes",
+							"host": ["{{base_url}}"],
+							"path": ["sizes"]
+						},
+						"description": "Get all sizes. Public endpoint."
+					}
+				},
+				{
+					"name": "Get Size by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sizes/:id",
+							"host": ["{{base_url}}"],
+							"path": ["sizes", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "size-id-here"
+								}
+							]
+						},
+						"description": "Get size by ID. Public endpoint."
+					}
+				},
+				{
+					"name": "Create Size (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Large\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/sizes",
+							"host": ["{{base_url}}"],
+							"path": ["sizes"]
+						},
+						"description": "Create a new size. Requires ADMIN role and JWT token."
+					}
+				},
+				{
+					"name": "Update Size (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Extra Large\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/sizes/:id",
+							"host": ["{{base_url}}"],
+							"path": ["sizes", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "size-id-here"
+								}
+							]
+						},
+						"description": "Update a size. Requires ADMIN role and JWT token."
+					}
+				},
+				{
+					"name": "Delete Size (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sizes/:id",
+							"host": ["{{base_url}}"],
+							"path": ["sizes", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "size-id-here"
+								}
+							]
+						},
+						"description": "Delete a size. Requires ADMIN role and JWT token."
+					}
+				}
+			]
+		},
+		{
+			"name": "Categories",
+			"item": [
+				{
+					"name": "Get All Categories",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Language",
+								"value": "en",
+								"description": "Language preference: en or ar"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/categories",
+							"host": ["{{base_url}}"],
+							"path": ["categories"]
+						},
+						"description": "Get all categories. Language is taken from X-Language header (en or ar). Public endpoint."
+					}
+				},
+				{
+					"name": "Get Category by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Language",
+								"value": "en",
+								"description": "Language preference: en or ar"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/categories/:id",
+							"host": ["{{base_url}}"],
+							"path": ["categories", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "category-id-here"
+								}
+							]
+						},
+						"description": "Get category by ID. Language is taken from X-Language header (en or ar). Public endpoint."
+					}
+				},
+				{
+					"name": "Create Category (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": {\n    \"ar\": \"فئة\",\n    \"en\": \"Category\"\n  },\n  \"image\": \"https://example.com/category-image.jpg\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/categories",
+							"host": ["{{base_url}}"],
+							"path": ["categories"]
+						},
+						"description": "Create a new category. Requires ADMIN role and JWT token."
+					}
+				},
+				{
+					"name": "Update Category (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": {\n    \"ar\": \"فئة محدثة\",\n    \"en\": \"Updated Category\"\n  },\n  \"image\": \"https://example.com/updated-image.jpg\",\n  \"isActive\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/categories/:id",
+							"host": ["{{base_url}}"],
+							"path": ["categories", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "category-id-here"
+								}
+							]
+						},
+						"description": "Update a category. Requires ADMIN role and JWT token."
+					}
+				},
+				{
+					"name": "Delete Category (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/categories/:id",
+							"host": ["{{base_url}}"],
+							"path": ["categories", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "category-id-here"
+								}
+							]
+						},
+						"description": "Delete a category. Requires ADMIN role and JWT token."
+					}
+				}
+			]
+		},
+		{
+			"name": "SubCategories",
+			"item": [
+				{
+					"name": "Get All SubCategories",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Language",
+								"value": "en",
+								"description": "Language preference: en or ar"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/subcategories?categoryId=category-id",
+							"host": ["{{base_url}}"],
+							"path": ["subcategories"],
+							"query": [
+								{
+									"key": "categoryId",
+									"value": "category-id",
+									"description": "Optional: Filter by category"
+								}
+							]
+						},
+						"description": "Get all subcategories. Language is taken from X-Language header (en or ar). Public endpoint."
+					}
+				},
+				{
+					"name": "Get SubCategory by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Language",
+								"value": "en",
+								"description": "Language preference: en or ar"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/subcategories/:id",
+							"host": ["{{base_url}}"],
+							"path": ["subcategories", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "subcategory-id-here"
+								}
+							]
+						},
+						"description": "Get subcategory by ID. Language is taken from X-Language header (en or ar). Public endpoint."
+					}
+				},
+				{
+					"name": "Create SubCategory (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": {\n    \"ar\": \"فئة فرعية\",\n    \"en\": \"SubCategory\"\n  },\n  \"categoryId\": \"category-id-here\",\n  \"image\": \"https://example.com/subcategory-image.jpg\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/subcategories",
+							"host": ["{{base_url}}"],
+							"path": ["subcategories"]
+						},
+						"description": "Create a new subcategory. Requires ADMIN role and JWT token."
+					}
+				},
+				{
+					"name": "Update SubCategory (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": {\n    \"ar\": \"فئة فرعية محدثة\",\n    \"en\": \"Updated SubCategory\"\n  },\n  \"categoryId\": \"category-id-here\",\n  \"image\": \"https://example.com/updated-image.jpg\",\n  \"isActive\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/subcategories/:id",
+							"host": ["{{base_url}}"],
+							"path": ["subcategories", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "subcategory-id-here"
+								}
+							]
+						},
+						"description": "Update a subcategory. Requires ADMIN role and JWT token."
+					}
+				},
+				{
+					"name": "Delete SubCategory (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/subcategories/:id",
+							"host": ["{{base_url}}"],
+							"path": ["subcategories", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "subcategory-id-here"
+								}
+							]
+						},
+						"description": "Delete a subcategory. Requires ADMIN role and JWT token."
+					}
+				}
+			]
+		},
+		{
+			"name": "Offers",
+			"item": [
+				{
+					"name": "Get All Offers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/offers",
+							"host": ["{{base_url}}"],
+							"path": ["offers"]
+						},
+						"description": "Get all offers. Public endpoint."
+					}
+				},
+				{
+					"name": "Get Active Offers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/offers/active",
+							"host": ["{{base_url}}"],
+							"path": ["offers", "active"]
+						},
+						"description": "Get active offers. Public endpoint."
+					}
+				},
+				{
+					"name": "Get Offer by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/offers/:id",
+							"host": ["{{base_url}}"],
+							"path": ["offers", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "offer-id-here"
+								}
+							]
+						},
+						"description": "Get offer by ID. Public endpoint."
+					}
+				},
+				{
+					"name": "Create Offer (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": {\n    \"ar\": \"عرض خاص\",\n    \"en\": \"Special Offer\"\n  },\n  \"type\": \"percentage\",\n  \"value\": 20,\n  \"scope\": \"global\",\n  \"startDate\": \"2024-01-01T00:00:00Z\",\n  \"endDate\": \"2024-12-31T23:59:59Z\",\n  \"isActive\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/offers",
+							"host": ["{{base_url}}"],
+							"path": ["offers"]
+						},
+						"description": "Create a new offer. Requires ADMIN role and JWT token."
+					}
+				},
+				{
+					"name": "Update Offer (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"value\": 25,\n  \"isActive\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/offers/:id",
+							"host": ["{{base_url}}"],
+							"path": ["offers", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "offer-id-here"
+								}
+							]
+						},
+						"description": "Update an offer. Requires ADMIN role and JWT token."
+					}
+				},
+				{
+					"name": "Delete Offer (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/offers/:id",
+							"host": ["{{base_url}}"],
+							"path": ["offers", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "offer-id-here"
+								}
+							]
+						},
+						"description": "Delete an offer. Requires ADMIN role and JWT token."
 					}
 				}
 			]
@@ -1069,7 +1317,12 @@
 					"name": "Create JumiaPay Session",
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"orderId\": \"order-id-here\"\n}",
@@ -1083,7 +1336,8 @@
 							"raw": "{{base_url}}/payments/jumiapay/create",
 							"host": ["{{base_url}}"],
 							"path": ["payments", "jumiapay", "create"]
-						}
+						},
+						"description": "Create JumiaPay payment session. Requires JWT token."
 					}
 				},
 				{
@@ -1105,14 +1359,20 @@
 									"value": "success"
 								}
 							]
-						}
+						},
+						"description": "JumiaPay callback endpoint. Public endpoint."
 					}
 				},
 				{
 					"name": "Confirm Cash on Delivery",
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"orderId\": \"order-id-here\"\n}",
@@ -1126,7 +1386,8 @@
 							"raw": "{{base_url}}/payments/cash-on-delivery/confirm",
 							"host": ["{{base_url}}"],
 							"path": ["payments", "cash-on-delivery", "confirm"]
-						}
+						},
+						"description": "Confirm cash on delivery payment. Requires JWT token."
 					}
 				}
 			]
@@ -1143,139 +1404,8 @@
 							"raw": "{{base_url}}/admin/dashboard",
 							"host": ["{{base_url}}"],
 							"path": ["admin", "dashboard"]
-						}
-					}
-				},
-				{
-					"name": "Create Product (Admin)",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": {\n    \"ar\": \"اسم المنتج\",\n    \"en\": \"Product Name\"\n  },\n  \"description\": {\n    \"ar\": \"وصف المنتج\",\n    \"en\": \"Product Description\"\n  },\n  \"images\": [\"https://example.com/image1.jpg\"],\n  \"price\": 100,\n  \"currency\": \"EGP\",\n  \"sizes\": [\"size-id-1\", \"size-id-2\"],\n  \"colors\": [\"color-id-1\", \"color-id-2\"],\n  \"categoryId\": \"category-id-here\",\n  \"subCategoryId\": \"subcategory-id-here\",\n  \"isActive\": true\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
 						},
-						"url": {
-							"raw": "{{base_url}}/admin/products",
-							"host": ["{{base_url}}"],
-							"path": ["admin", "products"]
-						}
-					}
-				},
-				{
-					"name": "Update Product (Admin)",
-					"request": {
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"price\": 120\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/admin/products/:id",
-							"host": ["{{base_url}}"],
-							"path": ["admin", "products", ":id"],
-							"variable": [
-								{
-									"key": "id",
-									"value": "product-id-here"
-								}
-							]
-						}
-					}
-				},
-				{
-					"name": "Delete Product (Admin)",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/admin/products/:id",
-							"host": ["{{base_url}}"],
-							"path": ["admin", "products", ":id"],
-							"variable": [
-								{
-									"key": "id",
-									"value": "product-id-here"
-								}
-							]
-						}
-					}
-				},
-				{
-					"name": "Create Offer (Admin)",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"title\": {\n    \"ar\": \"عرض خاص\",\n    \"en\": \"Special Offer\"\n  },\n  \"type\": \"percentage\",\n  \"value\": 20,\n  \"scope\": \"global\",\n  \"startDate\": \"2024-01-01T00:00:00Z\",\n  \"endDate\": \"2024-12-31T23:59:59Z\",\n  \"isActive\": true\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/admin/offers",
-							"host": ["{{base_url}}"],
-							"path": ["admin", "offers"]
-						}
-					}
-				},
-				{
-					"name": "Update Offer (Admin)",
-					"request": {
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"value\": 25\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/admin/offers/:id",
-							"host": ["{{base_url}}"],
-							"path": ["admin", "offers", ":id"],
-							"variable": [
-								{
-									"key": "id",
-									"value": "offer-id-here"
-								}
-							]
-						}
-					}
-				},
-				{
-					"name": "Delete Offer (Admin)",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/admin/offers/:id",
-							"host": ["{{base_url}}"],
-							"path": ["admin", "offers", ":id"],
-							"variable": [
-								{
-									"key": "id",
-									"value": "offer-id-here"
-								}
-							]
-						}
+						"description": "Get admin dashboard statistics. Requires ADMIN role and JWT token."
 					}
 				},
 				{
@@ -1287,7 +1417,8 @@
 							"raw": "{{base_url}}/admin/orders",
 							"host": ["{{base_url}}"],
 							"path": ["admin", "orders"]
-						}
+						},
+						"description": "Get all orders. Requires ADMIN role and JWT token."
 					}
 				},
 				{
@@ -1305,14 +1436,20 @@
 									"value": "order-id-here"
 								}
 							]
-						}
+						},
+						"description": "Get order by ID. Requires ADMIN role and JWT token."
 					}
 				},
 				{
 					"name": "Update Order Status (Admin)",
 					"request": {
 						"method": "PUT",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"status\": \"shipped\"\n}",
@@ -1332,7 +1469,8 @@
 									"value": "order-id-here"
 								}
 							]
-						}
+						},
+						"description": "Update order status. Requires ADMIN role and JWT token."
 					}
 				}
 			]
@@ -1344,10 +1482,15 @@
 					"name": "Test Notification",
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"title\": \"Test Notification\",\n  \"body\": \"This is a test notification\"\n}",
+							"raw": "{}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1358,7 +1501,8 @@
 							"raw": "{{base_url}}/notifications/test",
 							"host": ["{{base_url}}"],
 							"path": ["notifications", "test"]
-						}
+						},
+						"description": "Test notification endpoint. Requires JWT token."
 					}
 				}
 			]

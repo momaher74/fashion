@@ -31,7 +31,7 @@ export class ColorService {
       new: true,
     });
     if (!color) {
-      throw new NotFoundException('Color not found');
+      throw new NotFoundException('color.not_found');
     }
     return color;
   }
@@ -39,7 +39,7 @@ export class ColorService {
   async remove(id: string): Promise<void> {
     const color = await this.colorModel.findByIdAndDelete(id);
     if (!color) {
-      throw new NotFoundException('Color not found');
+      throw new NotFoundException('color.not_found');
     }
   }
 }

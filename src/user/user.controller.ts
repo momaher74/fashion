@@ -4,28 +4,23 @@ import {
   Put,
   Body,
   UseGuards,
-  Param,
   Patch,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @Controller('users')
-@UseGuards(FirebaseAuthGuard)
+@UseGuards(JwtAuthGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get('me')
   async getProfile(@CurrentUser() user: any) {
-    const dbUser = await this.userService.findByFirebaseUid(user.firebaseUid);
-    if (!dbUser) {
-      throw new Error('User not found');
-    }
+    const dbUser = await this.userService.findById(user.id);
     return {
       id: dbUser._id,
-      firebaseUid: dbUser.firebaseUid,
       email: dbUser.email,
       name: dbUser.name,
       phone: dbUser.phone,
@@ -40,20 +35,17 @@ export class UserController {
     @CurrentUser() user: any,
     @Body() updateDto: UpdateUserDto,
   ) {
-    const dbUser = await this.userService.findByFirebaseUid(user.firebaseUid);
-    if (!dbUser) {
-      throw new Error('User not found');
-    }
+    const dbUser = await this.userService.findById(user.id);
     const updated = await this.userService.update(dbUser._id.toString(), updateDto);
     return {
       id: updated._id,
-      firebaseUid: updated.firebaseUid,
       email: updated.email,
       name: updated.name,
       phone: updated.phone,
       role: updated.role,
       language: updated.language,
       avatar: updated.avatar,
+      authProvider: updated.authProvider,
     };
   }
 
@@ -62,10 +54,7 @@ export class UserController {
     @CurrentUser() user: any,
     @Body('fcmToken') fcmToken: string,
   ) {
-    const dbUser = await this.userService.findByFirebaseUid(user.firebaseUid);
-    if (!dbUser) {
-      throw new Error('User not found');
-    }
+    const dbUser = await this.userService.findById(user.id);
     await this.userService.updateFcmToken(dbUser._id.toString(), fcmToken);
     return { message: 'FCM token updated' };
   }

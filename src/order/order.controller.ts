@@ -10,7 +10,7 @@ import {
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
-import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/enums/role.enum';
@@ -18,7 +18,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { UserService } from '../user/user.service';
 
 @Controller('orders')
-@UseGuards(FirebaseAuthGuard)
+@UseGuards(JwtAuthGuard)
 export class OrderController {
   constructor(
     private readonly orderService: OrderService,
@@ -27,28 +27,19 @@ export class OrderController {
 
   @Post()
   async create(@CurrentUser() user: any, @Body() createOrderDto: CreateOrderDto) {
-    const dbUser = await this.userService.findByFirebaseUid(user.firebaseUid);
-    if (!dbUser) {
-      throw new Error('User not found');
-    }
+    const dbUser = await this.userService.findById(user.id);
     return this.orderService.create(dbUser._id.toString(), createOrderDto);
   }
 
   @Get()
   async findAll(@CurrentUser() user: any) {
-    const dbUser = await this.userService.findByFirebaseUid(user.firebaseUid);
-    if (!dbUser) {
-      throw new Error('User not found');
-    }
+    const dbUser = await this.userService.findById(user.id);
     return this.orderService.findAll(dbUser._id.toString());
   }
 
   @Get(':id')
   async findOne(@CurrentUser() user: any, @Param('id') id: string) {
-    const dbUser = await this.userService.findByFirebaseUid(user.firebaseUid);
-    if (!dbUser) {
-      throw new Error('User not found');
-    }
+    const dbUser = await this.userService.findById(user.id);
     return this.orderService.findOne(id, dbUser._id.toString());
   }
 

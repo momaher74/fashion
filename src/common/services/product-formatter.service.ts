@@ -46,7 +46,7 @@ export class ProductFormatterService {
   formatProduct(
     product: ProductDocument,
     offers: OfferDocument[],
-    language: Language = Language.EN,
+    language: Language = Language.AR,
   ): FormattedProduct {
     const now = new Date();
     const activeOffers = offers.filter(
@@ -149,7 +149,7 @@ export class ProductFormatterService {
   formatProducts(
     products: ProductDocument[],
     offers: OfferDocument[],
-    language: Language = Language.EN,
+    language: Language = Language.AR,
   ): FormattedProduct[] {
     return products.map((product) =>
       this.formatProduct(product, offers, language),

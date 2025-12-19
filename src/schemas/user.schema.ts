@@ -2,16 +2,17 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { Role } from '../common/enums/role.enum';
 import { Language } from '../common/enums/language.enum';
+import { AuthProvider } from '../common/enums/auth-provider.enum';
 
 export type UserDocument = User & Document;
 
 @Schema({ timestamps: true })
 export class User {
   @Prop({ required: true, unique: true })
-  firebaseUid: string;
-
-  @Prop({ required: true })
   email: string;
+
+  @Prop()
+  password?: string;
 
   @Prop()
   name?: string;
@@ -22,8 +23,11 @@ export class User {
   @Prop({ type: String, enum: Role, default: Role.USER })
   role: Role;
 
-  @Prop({ type: String, enum: Language, default: Language.EN })
+  @Prop({ type: String, enum: Language, default: Language.AR })
   language: Language;
+
+  @Prop({ type: String, enum: AuthProvider, required: true })
+  authProvider: AuthProvider;
 
   @Prop()
   fcmToken?: string;

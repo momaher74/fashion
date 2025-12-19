@@ -34,15 +34,15 @@ export class PaymentService {
   async createJumiaPaySession(orderId: string) {
     const order = await this.orderModel.findById(orderId);
     if (!order) {
-      throw new NotFoundException('Order not found');
+      throw new NotFoundException('order.not_found');
     }
 
     if (order.paymentMethod !== PaymentMethod.JUMIAPAY) {
-      throw new BadRequestException('Order is not set for JumiaPay payment');
+      throw new BadRequestException('order.payment_method_invalid');
     }
 
     if (order.paymentStatus === PaymentStatus.PAID) {
-      throw new BadRequestException('Order is already paid');
+      throw new BadRequestException('order.already_paid');
     }
 
     try {
@@ -77,14 +77,14 @@ export class PaymentService {
         transactionId: response.data.transactionId,
       };
     } catch (error) {
-      throw new BadRequestException('Failed to create payment session');
+      throw new BadRequestException('payment.session_failed');
     }
   }
 
   async handleJumiaPayCallback(transactionId: string, status: string) {
     const order = await this.orderModel.findOne({ paymentTransactionId: transactionId });
     if (!order) {
-      throw new NotFoundException('Order not found');
+      throw new NotFoundException('order.not_found');
     }
 
     if (status === 'success' || status === 'paid') {
@@ -113,11 +113,11 @@ export class PaymentService {
   async confirmCashOnDelivery(orderId: string) {
     const order = await this.orderModel.findById(orderId);
     if (!order) {
-      throw new NotFoundException('Order not found');
+      throw new NotFoundException('order.not_found');
     }
 
     if (order.paymentMethod !== PaymentMethod.CASH_ON_DELIVERY) {
-      throw new BadRequestException('Order is not set for Cash on Delivery');
+      throw new BadRequestException('payment.cash_on_delivery_invalid');
     }
 
     // Cash on delivery is confirmed when order is created

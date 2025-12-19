@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ColorService } from './color.service';
-import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/enums/role.enum';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -29,14 +29,14 @@ export class ColorController {
   }
 
   @Post()
-  @UseGuards(FirebaseAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   async create(@Body('name') name: string, @Body('hexCode') hexCode?: string) {
     return this.colorService.create(name, hexCode);
   }
 
   @Patch(':id')
-  @UseGuards(FirebaseAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   async update(
     @Param('id') id: string,
@@ -46,7 +46,7 @@ export class ColorController {
   }
 
   @Delete(':id')
-  @UseGuards(FirebaseAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   async remove(@Param('id') id: string) {
     await this.colorService.remove(id);

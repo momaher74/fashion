@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Cart, CartDocument } from '../schemas/cart.schema';
@@ -33,7 +33,7 @@ export class CartService {
     const cart = await this.getOrCreateCart(userId);
     const product = await this.productModel.findById(addToCartDto.productId);
     if (!product) {
-      throw new Error('Product not found');
+      throw new NotFoundException('cart.product_not_found');
     }
 
     // Check if item already exists with same size and color
@@ -58,7 +58,7 @@ export class CartService {
     return cart.save();
   }
 
-  async getCart(userId: string, language: Language = Language.EN) {
+  async getCart(userId: string, language: Language = Language.AR) {
     const cart = await this.getOrCreateCart(userId);
     const user = await this.userService.findById(userId);
     const lang = user.language || language;
@@ -116,7 +116,7 @@ export class CartService {
   ) {
     const cart = await this.getOrCreateCart(userId);
     if (itemIndex < 0 || itemIndex >= cart.items.length) {
-      throw new Error('Invalid item index');
+      throw new BadRequestException('cart.invalid_index');
     }
 
     if (updateDto.quantity !== undefined) {
@@ -129,7 +129,7 @@ export class CartService {
   async removeFromCart(userId: string, itemIndex: number) {
     const cart = await this.getOrCreateCart(userId);
     if (itemIndex < 0 || itemIndex >= cart.items.length) {
-      throw new Error('Invalid item index');
+      throw new BadRequestException('cart.invalid_index');
     }
 
     cart.items.splice(itemIndex, 1);

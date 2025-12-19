@@ -32,9 +32,5 @@ export class FilterProductDto {
   @IsNumber()
   @Min(0)
   maxPrice?: number;
-
-  @IsOptional()
-  @IsString()
-  language?: Language;
 }
 

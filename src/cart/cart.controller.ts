@@ -12,13 +12,14 @@ import {
 import { CartService } from './cart.service';
 import { AddToCartDto } from './dto/add-to-cart.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
-import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { LanguageHeader } from '../common/decorators/language.decorator';
 import { UserService } from '../user/user.service';
 import { Language } from '../common/enums/language.enum';
 
 @Controller('cart')
-@UseGuards(FirebaseAuthGuard)
+@UseGuards(JwtAuthGuard)
 export class CartController {
   constructor(
     private readonly cartService: CartService,
@@ -28,24 +29,15 @@ export class CartController {
   @Get()
   async getCart(
     @CurrentUser() user: any,
-    @Query('language') language?: Language,
+    @LanguageHeader() language: Language,
   ) {
-    const dbUser = await this.userService.findByFirebaseUid(user.firebaseUid);
-    if (!dbUser) {
-      throw new Error('User not found');
-    }
-    return this.cartService.getCart(
-      dbUser._id.toString(),
-      language || dbUser.language,
-    );
+    const dbUser = await this.userService.findById(user.id);
+    return this.cartService.getCart(dbUser._id.toString(), language);
   }
 
   @Post('add')
   async addToCart(@CurrentUser() user: any, @Body() addToCartDto: AddToCartDto) {
-    const dbUser = await this.userService.findByFirebaseUid(user.firebaseUid);
-    if (!dbUser) {
-      throw new Error('User not found');
-    }
+    const dbUser = await this.userService.findById(user.id);
     return this.cartService.addToCart(dbUser._id.toString(), addToCartDto);
   }
 
@@ -55,10 +47,7 @@ export class CartController {
     @Param('index') index: string,
     @Body() updateDto: UpdateCartItemDto,
   ) {
-    const dbUser = await this.userService.findByFirebaseUid(user.firebaseUid);
-    if (!dbUser) {
-      throw new Error('User not found');
-    }
+    const dbUser = await this.userService.findById(user.id);
     return this.cartService.updateCartItem(
       dbUser._id.toString(),
       parseInt(index),
@@ -71,10 +60,7 @@ export class CartController {
     @CurrentUser() user: any,
     @Param('index') index: string,
   ) {
-    const dbUser = await this.userService.findByFirebaseUid(user.firebaseUid);
-    if (!dbUser) {
-      throw new Error('User not found');
-    }
+    const dbUser = await this.userService.findById(user.id);
     return this.cartService.removeFromCart(
       dbUser._id.toString(),
       parseInt(index),
@@ -83,10 +69,7 @@ export class CartController {
 
   @Delete('clear')
   async clearCart(@CurrentUser() user: any) {
-    const dbUser = await this.userService.findByFirebaseUid(user.firebaseUid);
-    if (!dbUser) {
-      throw new Error('User not found');
-    }
+    const dbUser = await this.userService.findById(user.id);
     return this.cartService.clearCart(dbUser._id.toString());
   }
 }
