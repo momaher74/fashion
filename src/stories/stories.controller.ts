@@ -19,7 +19,7 @@ export class StoriesController {
   constructor(
     private readonly storiesService: StoriesService,
     private readonly cloudinary: CloudinaryService,
-  ) {}
+  ) { }
 
   @Post('upload')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -45,7 +45,11 @@ export class StoriesController {
 
     let parsedTitle: any;
     if (title) {
-      try { parsedTitle = JSON.parse(title); } catch { parsedTitle = undefined; }
+      try {
+        parsedTitle = JSON.parse(title);
+      } catch {
+        parsedTitle = { ar: title, en: title };
+      }
     }
 
     return this.storiesService.create({

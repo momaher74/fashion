@@ -11,6 +11,7 @@ import { ProductType } from '../common/enums/product-type.enum';
 import { CategoryService } from '../category/category.service';
 import { BannerService } from '../banner/banner.service';
 import { ProductFormatterService } from '../common/services/product-formatter.service';
+import { StoriesService } from '../stories/stories.service';
 
 @Injectable()
 export class HomeService {
@@ -22,6 +23,7 @@ export class HomeService {
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
     private categoryService: CategoryService,
     private bannerService: BannerService,
+    private storiesService: StoriesService,
     private productFormatter: ProductFormatterService,
   ) { }
 
@@ -30,10 +32,11 @@ export class HomeService {
     const rawOffers = await this.getActiveOffers();
 
     // Get all other data in parallel
-    const [categories, banners, popularProducts, recommendedProducts] =
+    const [categories, banners, stories, popularProducts, recommendedProducts] =
       await Promise.all([
         this.getMainCategories(language),
         this.getBanners(language),
+        this.storiesService.findActive(language, userId),
         this.getPopularProducts(language, rawOffers),
         this.getRecommendedProducts(language, userId, rawOffers),
       ]);
@@ -46,10 +49,12 @@ export class HomeService {
       value: offer.value,
       scope: offer.scope,
       endDate: offer.endDate,
+      image: offer.image,
     }));
 
     return {
-      offers: formattedOffers, // Added this
+      offers: formattedOffers,
+      stories,
       categories,
       banners,
       popularProducts,

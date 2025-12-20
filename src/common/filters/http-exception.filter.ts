@@ -26,7 +26,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const request = ctx.getRequest();
 
     // Get language from header
-    const languageHeader = request.headers['x-language'] || request.headers['accept-language'];
+    const languageHeader = request.headers['language'] || request.headers['x-language'] || request.headers['accept-language'];
     let language = Language.AR; // Default to Arabic
     if (languageHeader) {
       const lang = String(languageHeader).split(',')[0].split('-')[0].toLowerCase();

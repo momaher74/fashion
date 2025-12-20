@@ -18,6 +18,7 @@ import { CategoryModule } from './category/category.module';
 import { SubCategoryModule } from './subcategory/subcategory.module';
 import { BannerModule } from './banner/banner.module';
 import { HomeModule } from './home/home.module';
+import { StoriesModule } from './stories/stories.module';
 
 @Module({
   imports: [
@@ -28,7 +29,7 @@ import { HomeModule } from './home/home.module';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGODB_URI') ,
+        uri: configService.get<string>('MONGODB_URI'),
       }),
       inject: [ConfigService],
     }),
@@ -48,7 +49,8 @@ import { HomeModule } from './home/home.module';
     SubCategoryModule,
     BannerModule,
     HomeModule,
+    StoriesModule,
   ],
 })
-export class AppModule {}
+export class AppModule { }
 

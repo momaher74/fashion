@@ -3,11 +3,14 @@ import {
   Get,
   Post,
   Put,
+  Patch,
   Delete,
   Body,
   Param,
   UseGuards,
   Query,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { ProductService } from '../product/product.service';
@@ -17,6 +20,9 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/enums/role.enum';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
+import { CloudinaryService } from '../common/services/cloudinary.service';
 import { CreateProductDto } from '../product/dto/create-product.dto';
 import { UpdateProductDto } from '../product/dto/update-product.dto';
 import { CreateOfferDto } from '../offers/dto/create-offer.dto';
@@ -32,7 +38,8 @@ export class AdminController {
     private productService: ProductService,
     private offersService: OffersService,
     private orderService: OrderService,
-  ) {}
+    private cloudinary: CloudinaryService,
+  ) { }
 
   @Get('dashboard')
   async getDashboard() {
@@ -46,7 +53,7 @@ export class AdminController {
   }
 
   @Put('products/:id')
-  async updateProduct(  
+  async updateProduct(
     @Param('id') id: string,
     @Body() updateDto: UpdateProductDto,
   ) {
@@ -60,16 +67,52 @@ export class AdminController {
 
   // Offer CRUD
   @Post('offers')
-  async createOffer(@Body() createDto: CreateOfferDto) {
-    return this.offersService.create(createDto);
+  @UseInterceptors(FileInterceptor('image', { storage: memoryStorage() }))
+  async createOffer(
+    @Body() body: any,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    let title = body.title;
+    if (typeof title === 'string') {
+      try { title = JSON.parse(title); } catch (e) { }
+    }
+
+    let imageUrl = body.image;
+    if (file) {
+      imageUrl = await this.cloudinary.uploadImage(file);
+    }
+
+    return this.offersService.create({
+      ...body,
+      title,
+      image: imageUrl,
+      value: body.value ? parseFloat(body.value) : 0,
+      isActive: body.isActive === 'false' || body.isActive === false ? false : true,
+    });
   }
 
-  @Put('offers/:id')
+  @Patch('offers/:id')
+  @UseInterceptors(FileInterceptor('image', { storage: memoryStorage() }))
   async updateOffer(
     @Param('id') id: string,
-    @Body() updateDto: UpdateOfferDto,
+    @Body() body: any,
+    @UploadedFile() file?: Express.Multer.File,
   ) {
-    return this.offersService.update(id, updateDto);
+    const updateData: any = { ...body };
+
+    if (body.title && typeof body.title === 'string') {
+      try { updateData.title = JSON.parse(body.title); } catch (e) { }
+    }
+    if (body.value) updateData.value = parseFloat(body.value);
+    if (body.isActive !== undefined) {
+      updateData.isActive = body.isActive === 'false' || body.isActive === false ? false : true;
+    }
+
+    if (file) {
+      updateData.image = await this.cloudinary.uploadImage(file);
+    }
+
+    return this.offersService.update(id, updateData);
   }
 
   @Delete('offers/:id')

@@ -4,6 +4,7 @@ import { OffersController } from './offers.controller';
 import { OffersService } from './offers.service';
 import { Offer, OfferSchema } from '../schemas/offer.schema';
 import { UserModule } from '../user/user.module';
+import { CloudinaryService } from '../common/services/cloudinary.service';
 
 @Module({
   imports: [
@@ -11,8 +12,8 @@ import { UserModule } from '../user/user.module';
     UserModule,
   ],
   controllers: [OffersController],
-  providers: [OffersService],
-  exports: [OffersService],
+  providers: [OffersService, CloudinaryService],
+  exports: [OffersService, CloudinaryService],
 })
-export class OffersModule {}
+export class OffersModule { }
 

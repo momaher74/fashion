@@ -11,6 +11,9 @@ export class Offer {
   @Prop({ type: Object, required: true })
   title: Multilingual;
 
+  @Prop()
+  image?: string;
+
   @Prop({ type: String, enum: OfferScope, required: true })
   scope: OfferScope;
 

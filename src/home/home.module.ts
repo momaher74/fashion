@@ -10,6 +10,7 @@ import { Order, OrderSchema } from '../schemas/order.schema';
 import { CategoryModule } from '../category/category.module';
 import { BannerModule } from '../banner/banner.module';
 import { CommonModule } from '../common/common.module';
+import { StoriesModule } from '../stories/stories.module';
 
 @Module({
   imports: [
@@ -23,9 +24,10 @@ import { CommonModule } from '../common/common.module';
     CategoryModule,
     BannerModule,
     CommonModule,
+    StoriesModule,
   ],
   controllers: [HomeController],
   providers: [HomeService],
   exports: [HomeService],
 })
-export class HomeModule {}
+export class HomeModule { }

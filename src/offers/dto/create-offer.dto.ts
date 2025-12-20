@@ -58,5 +58,9 @@ export class CreateOfferDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
+
+  @IsString()
+  @IsOptional()
+  image?: string;
 }
 
