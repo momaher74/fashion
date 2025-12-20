@@ -14,6 +14,9 @@ import { Language } from '../common/enums/language.enum';
 import { AuthProvider } from '../common/enums/auth-provider.enum';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { Session, SessionDocument } from '../schemas/session.schema';
+import { ConfigService } from '@nestjs/config';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class AuthService {
@@ -21,11 +24,13 @@ export class AuthService {
 
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(Session.name) private sessionModel: Model<SessionDocument>,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) {
     this.googleClient = new OAuth2Client(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET,
+      this.configService.get<string>('GOOGLE_CLIENT_ID'),
+      this.configService.get<string>('GOOGLE_CLIENT_SECRET'),
     );
   }
 
@@ -51,10 +56,10 @@ export class AuthService {
       authProvider: AuthProvider.EMAIL,
     });
 
-    // Generate JWT token
-    const token = this.generateToken(user);
+    // Generate tokens
+    const tokens = await this.generateTokens(user);
 
-    return { user, token };
+    return { user, ...tokens };
   }
 
   async login(loginDto: LoginDto) {
@@ -77,10 +82,10 @@ export class AuthService {
       throw new UnauthorizedException('auth.invalid_credentials');
     }
 
-    // Generate JWT token
-    const token = this.generateToken(user);
+    // Generate tokens
+    const tokens = await this.generateTokens(user);
 
-    return { user, token };
+    return { user, ...tokens };
   }
 
   async googleLogin(idToken: string, language?: Language) {
@@ -121,10 +126,10 @@ export class AuthService {
         }
       }
 
-      // Generate JWT token
-      const token = this.generateToken(user);
+      // Generate tokens
+      const tokens = await this.generateTokens(user);
 
-      return { user, token };
+      return { user, ...tokens };
     } catch (error) {
       if (error instanceof UnauthorizedException) {
         throw error;
@@ -169,10 +174,10 @@ export class AuthService {
         }
       }
 
-      // Generate JWT token
-      const token = this.generateToken(user);
+      // Generate tokens
+      const tokens = await this.generateTokens(user);
 
-      return { user, token };
+      return { user, ...tokens };
     } catch (error) {
       if (error instanceof UnauthorizedException) {
         throw error;
@@ -189,13 +194,118 @@ export class AuthService {
     return this.userModel.findOne({ email });
   }
 
-  private generateToken(user: UserDocument): string {
+  private async generateTokens(user: UserDocument) {
     const payload = {
       sub: user._id.toString(),
       email: user.email,
       role: user.role,
     };
-    return this.jwtService.sign(payload);
+
+    const accessToken = this.jwtService.sign(payload);
+
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: this.configService.get<string>('JWT_REFRESH_SECRET') || 'refresh-secret',
+      expiresIn: '30d',
+    });
+
+    // Hash and store refresh token in session
+    const hashedRT = await bcrypt.hash(refreshToken, 10);
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30);
+
+    await this.sessionModel.create({
+      userId: user._id,
+      refreshToken: hashedRT,
+      expiresAt,
+    });
+
+    return { accessToken, refreshToken };
+  }
+
+  async refreshTokens(refreshToken: string) {
+    try {
+      const payload = this.jwtService.verify(refreshToken, {
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET') || 'refresh-secret',
+      });
+
+      const user = await this.userModel.findById(payload.sub);
+      if (!user) {
+        throw new UnauthorizedException('auth.user_not_found');
+      }
+
+      // Check if session exists and RT matches
+      const sessions = await this.sessionModel.find({ userId: user._id });
+
+      let currentSession = null;
+      for (const session of sessions) {
+        const isMatch = await bcrypt.compare(refreshToken, session.refreshToken);
+        if (isMatch) {
+          currentSession = session;
+          break;
+        }
+      }
+
+      if (!currentSession) {
+        throw new UnauthorizedException('auth.session_expired');
+      }
+
+      // Token Rotation: Delete old session and issue new tokens
+      await this.sessionModel.findByIdAndDelete(currentSession._id);
+
+      return this.generateTokens(user);
+    } catch (error) {
+      throw new UnauthorizedException('auth.session_invalid');
+    }
+  }
+
+  async verifySession(refreshToken: string) {
+    try {
+      const payload = this.jwtService.verify(refreshToken, {
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET') || 'refresh-secret',
+      });
+
+      const user = await this.userModel.findById(payload.sub);
+      if (!user) {
+        throw new UnauthorizedException('auth.user_not_found');
+      }
+
+      // Check session in DB
+      const sessions = await this.sessionModel.find({ userId: user._id });
+      let sessionExists = false;
+      for (const session of sessions) {
+        if (await bcrypt.compare(refreshToken, session.refreshToken)) {
+          sessionExists = true;
+          break;
+        }
+      }
+
+      if (!sessionExists) {
+        throw new UnauthorizedException('auth.session_invalid');
+      }
+
+      // Return user and new tokens (Facebook-like check-in)
+      const tokens = await this.generateTokens(user);
+      return { user, ...tokens };
+    } catch (error) {
+      throw new UnauthorizedException('auth.session_invalid');
+    }
+  }
+
+  async logout(refreshToken: string) {
+    const payload = this.jwtService.decode(refreshToken) as any;
+    if (!payload || !payload.sub) return;
+
+    const sessions = await this.sessionModel.find({ userId: payload.sub });
+    for (const session of sessions) {
+      if (await bcrypt.compare(refreshToken, session.refreshToken)) {
+        await this.sessionModel.findByIdAndDelete(session._id);
+        break;
+      }
+    }
+  }
+
+  async revokeAllSessions(userId: string) {
+    await this.sessionModel.deleteMany({ userId });
   }
 
   private decodeAppleToken(idToken: string): any {

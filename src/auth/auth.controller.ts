@@ -11,40 +11,42 @@ import { Language } from '../common/enums/language.enum';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('register')
   async register(
     @Body() registerDto: RegisterDto,
     @LanguageHeader() language: Language,
   ) {
-    const { user, token } = await this.authService.register(registerDto, language);
+    const result = await this.authService.register(registerDto, language);
     return {
       user: {
-        id: user._id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        language: user.language,
-        authProvider: user.authProvider,
+        id: result.user._id,
+        email: result.user.email,
+        name: result.user.name,
+        role: result.user.role,
+        language: result.user.language,
+        authProvider: result.user.authProvider,
       },
-      token,
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
     };
   }
 
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
-    const { user, token } = await this.authService.login(loginDto);
+    const result = await this.authService.login(loginDto);
     return {
       user: {
-        id: user._id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        language: user.language,
-        authProvider: user.authProvider,
+        id: result.user._id,
+        email: result.user.email,
+        name: result.user.name,
+        role: result.user.role,
+        language: result.user.language,
+        authProvider: result.user.authProvider,
       },
-      token,
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
     };
   }
 
@@ -53,21 +55,22 @@ export class AuthController {
     @Body() googleLoginDto: GoogleLoginDto,
     @LanguageHeader() language: Language,
   ) {
-    const { user, token } = await this.authService.googleLogin(
+    const result = await this.authService.googleLogin(
       googleLoginDto.idToken,
       language,
     );
     return {
       user: {
-        id: user._id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        language: user.language,
-        authProvider: user.authProvider,
-        avatar: user.avatar,
+        id: result.user._id,
+        email: result.user.email,
+        name: result.user.name,
+        role: result.user.role,
+        language: result.user.language,
+        authProvider: result.user.authProvider,
+        avatar: result.user.avatar,
       },
-      token,
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
     };
   }
 
@@ -76,7 +79,7 @@ export class AuthController {
     @Body() appleLoginDto: AppleLoginDto,
     @LanguageHeader() language: Language,
   ) {
-    const { user, token } = await this.authService.appleLogin(
+    const result = await this.authService.appleLogin(
       appleLoginDto.idToken,
       appleLoginDto.email,
       appleLoginDto.name,
@@ -84,14 +87,15 @@ export class AuthController {
     );
     return {
       user: {
-        id: user._id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        language: user.language,
-        authProvider: user.authProvider,
+        id: result.user._id,
+        email: result.user.email,
+        name: result.user.name,
+        role: result.user.role,
+        language: result.user.language,
+        authProvider: result.user.authProvider,
       },
-      token,
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
     };
   }
 
@@ -113,6 +117,36 @@ export class AuthController {
         avatar: dbUser.avatar,
       },
     };
+  }
+
+  @Post('refresh')
+  async refresh(@Body('refreshToken') refreshToken: string) {
+    const tokens = await this.authService.refreshTokens(refreshToken);
+    return tokens;
+  }
+
+  @Post('verify-session')
+  async verifySession(@Body('refreshToken') refreshToken: string) {
+    const result = await this.authService.verifySession(refreshToken);
+    return {
+      user: {
+        id: result.user._id,
+        email: result.user.email,
+        name: result.user.name,
+        role: result.user.role,
+        language: result.user.language,
+        authProvider: result.user.authProvider,
+        avatar: result.user.avatar,
+      },
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+    };
+  }
+
+  @Post('logout')
+  async logout(@Body('refreshToken') refreshToken: string) {
+    await this.authService.logout(refreshToken);
+    return { message: 'auth.logged_out_successfully' };
   }
 }
 
