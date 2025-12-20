@@ -7,7 +7,9 @@ import { Offer, OfferSchema } from '../schemas/offer.schema';
 import { Cart, CartSchema } from '../schemas/cart.schema';
 import { CommonModule } from '../common/common.module';
 import { UserModule } from '../user/user.module';
-import { Color, ColorSchema, Size, SizeSchema } from '@/schemas';
+import { Color, ColorSchema } from '../schemas/color.schema';
+import { Size, SizeSchema } from '../schemas/size.schema';
+
 
 @Module({
   imports: [
