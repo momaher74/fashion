@@ -64,7 +64,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
     if (exception instanceof Error) {
       this.logger.error(originalError, exception.stack, reqContext as any);
     } else {
-      this.logger.error(originalError, undefined, reqContext as any);
+      // For non-Error exceptions, log the actual exception object/value
+      const errorString = typeof exception === 'object' ? JSON.stringify(exception) : String(exception);
+      this.logger.error(`${originalError} | Non-Error Exception: ${errorString}`, undefined, reqContext as any);
     }
 
     // Translate the error message

@@ -11,8 +11,10 @@ import {
   UseInterceptors,
   UploadedFile,
   UploadedFiles,
+  BadRequestException,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
+import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { FilterProductDto } from './dto/filter-product.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -28,6 +30,7 @@ import { CloudinaryService } from '../common/services/cloudinary.service';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { Express } from 'express';
+import { Types } from 'mongoose';
 
 @Controller('products')
 export class ProductController {
@@ -81,139 +84,88 @@ export class ProductController {
     const normalize = (v: any) =>
       typeof v === 'string' ? v.trim().replace(/^"|"$/g, '') : v;
 
-    // Multilingual fields
-    const nameRaw = {
-      ar: normalize(body?.['name[ar]'] ?? body?.nameAr),
-      en: normalize(body?.['name[en]'] ?? body?.nameEn),
-    } as any;
-    const descriptionRaw = {
-      ar: normalize(body?.['description[ar]'] ?? body?.descriptionAr),
-      en: normalize(body?.['description[en]'] ?? body?.descriptionEn),
-    } as any;
-    // Fallback: support a single 'name'/'description' field as JSON or object
-    if ((!nameRaw.ar || !nameRaw.en) && body?.name) {
-      try {
-        const parsed = typeof body.name === 'string' ? JSON.parse(body.name) : body.name;
-        if (!nameRaw.ar) nameRaw.ar = normalize(parsed?.ar);
-        if (!nameRaw.en) nameRaw.en = normalize(parsed?.en);
-      } catch (_) { }
-    }
-    if ((!descriptionRaw.ar || !descriptionRaw.en) && body?.description) {
-      try {
-        const parsed = typeof body.description === 'string' ? JSON.parse(body.description) : body.description;
-        if (!descriptionRaw.ar) descriptionRaw.ar = normalize(parsed?.ar);
-        if (!descriptionRaw.en) descriptionRaw.en = normalize(parsed?.en);
-      } catch (_) { }
-    }
-    // remove undefined values
-    const name: any = {};
-    if (typeof nameRaw.ar === 'string' && nameRaw.ar.length > 0)
-      name.ar = nameRaw.ar;
-    if (typeof nameRaw.en === 'string' && nameRaw.en.length > 0)
-      name.en = nameRaw.en;
-    const description: any = {};
-    if (
-      typeof descriptionRaw.ar === 'string' &&
-      descriptionRaw.ar.length > 0
-    )
-      description.ar = descriptionRaw.ar;
-    if (
-      typeof descriptionRaw.en === 'string' &&
-      descriptionRaw.en.length > 0
-    )
-      description.en = descriptionRaw.en;
-
-    // Helpers to parse arrays from various forms
-    const toArrayFlexible = (v: any): string[] => {
-      if (v === undefined || v === null) return [];
-      if (Array.isArray(v)) return v.map((x) => normalize(x)).filter(Boolean);
-      const s = String(v).trim();
-      // Try JSON array first
-      if ((s.startsWith('[') && s.endsWith(']')) || s.includes(',')) {
-        try {
-          const parsed = JSON.parse(s);
-          if (Array.isArray(parsed)) {
-            return parsed
-              .map((x) => normalize(x))
-              .filter(Boolean)
-              .map(String);
+    // Helper to parse arrays from various forms (indexed, comma-separated, JSON)
+    const toArrayFlexible = (v: any, prefix?: string): string[] => {
+      let result: any[] = [];
+      if (v !== undefined && v !== null) {
+        if (Array.isArray(v)) {
+          result = v;
+        } else {
+          const s = String(v).trim();
+          if (s.startsWith('[') && s.endsWith(']')) {
+            try {
+              result = JSON.parse(s);
+            } catch (_) {
+              result = s.slice(1, -1).split(',').map(x => x.trim());
+            }
+          } else if (s.includes(',')) {
+            result = s.split(',').map(x => x.trim());
+          } else {
+            result = [s];
           }
-        } catch (_) {
-          // fallback: strip brackets then split by comma
-          const stripped = s.replace(/^\[/, '').replace(/\]$/, '');
-          return stripped
-            .split(',')
-            .map((x) => normalize(x))
-            .filter(Boolean)
-            .map(String);
         }
       }
-      return [normalize(s)].filter(Boolean).map(String);
+
+      // Check for indexed keys if result is still empty and prefix is provided
+      if ((!result || result.length === 0) && prefix) {
+        let i = 0;
+        while (body?.[`${prefix}[${i}]`] !== undefined) {
+          result.push(body[`${prefix}[${i}]`]);
+          i++;
+        }
+      }
+
+      return result.map(x => normalize(x)).filter(Boolean).map(String);
     };
 
-    // Improved helper to find indexed keys (e.g., sizes[0], colors[1])
-    const gatherIndexedKeys = (prefix: string): string[] => {
-      const results: string[] = [];
-      let i = 0;
-      while (body?.[`${prefix}[${i}]`] !== undefined) {
-        results.push(normalize(body[`${prefix}[${i}]`]));
-        i++;
-      }
-      return results;
+    // 1. Process Multilingual Fields (Name & Description)
+    const name: any = {
+      ar: normalize(body?.['name[ar]'] ?? body?.nameAr),
+      en: normalize(body?.['name[en]'] ?? body?.nameEn),
     };
-
-    // Images
-    const imagesIn = body?.['images[]'] ?? body?.images;
-    let images: string[] = toArrayFlexible(imagesIn);
-    if (images.length === 0) images = gatherIndexedKeys('images');
-    if (files && files.length) {
-      const uploaded: string[] = [];
-      for (const f of files) {
-        const url = await this.cloudinary.uploadImage(f);
-        uploaded.push(url);
+    if ((!name.ar || !name.en) && body?.name) {
+      try {
+        const parsed = typeof body.name === 'string' ? JSON.parse(body.name) : body.name;
+        if (!name.ar) name.ar = normalize(parsed?.ar);
+        if (!name.en) name.en = normalize(parsed?.en);
+      } catch (_) {
+        if (typeof body.name === 'string' && !name.ar) name.ar = name.en = body.name;
       }
-      images = images.concat(uploaded);
     }
 
-    // Sizes & Colors: accept sizes[]/colors[] or sizes/colors (JSON/comma-separated) or indexed forms sizes[0]
-    let sizes = toArrayFlexible(body?.['sizes[]'] ?? body?.sizes);
-    if (sizes.length === 0) sizes = gatherIndexedKeys('sizes');
-
-    let colors = toArrayFlexible(body?.['colors[]'] ?? body?.colors);
-    if (colors.length === 0) colors = gatherIndexedKeys('colors');
-
-    const priceNum = parseFloat(String(body?.price));
-    const currency = normalize(body?.currency);
-    const categoryId = normalize(body?.categoryId);
-    const subCategoryId = normalize(body?.subCategoryId);
-    const isActiveVal = body?.isActive;
-    const isActiveBool =
-      typeof isActiveVal !== 'undefined'
-        ? String(isActiveVal).toLowerCase() === 'true' ||
-        String(isActiveVal) === '1'
-        : undefined;
-    const type = normalize(body?.type) || 'normal';
-
-    // Basic validation
-    const { Types } = require('mongoose');
-    const { BadRequestException } = require('@nestjs/common');
-    if (!name.ar || !name.en) {
-      throw new BadRequestException('name.required');
-    }
-    if (!description.ar || !description.en) {
-      throw new BadRequestException('description.required');
-    }
-    if (!categoryId || !Types.ObjectId.isValid(categoryId)) {
-      throw new BadRequestException('categoryId.invalid');
-    }
-    if (!subCategoryId || !Types.ObjectId.isValid(subCategoryId)) {
-      throw new BadRequestException('subCategoryId.invalid');
-    }
-    if (Number.isNaN(priceNum)) {
-      throw new BadRequestException('price.invalid');
+    const description: any = {
+      ar: normalize(body?.['description[ar]'] ?? body?.descriptionAr),
+      en: normalize(body?.['description[en]'] ?? body?.descriptionEn),
+    };
+    if ((!description.ar || !description.en) && body?.description) {
+      try {
+        const parsed = typeof body.description === 'string' ? JSON.parse(body.description) : body.description;
+        if (!description.ar) description.ar = normalize(parsed?.ar);
+        if (!description.en) description.en = normalize(parsed?.en);
+      } catch (_) {
+        if (typeof body.description === 'string' && !description.ar) description.ar = description.en = body.description;
+      }
     }
 
-    // Variants: JSON string or object array or indexed form data
+    if (!name.ar || !name.en) throw new BadRequestException('name.required');
+    if (!description.ar || !description.en) throw new BadRequestException('description.required');
+
+    // 2. Process Images
+    const PLACEHOLDER_IMAGE = 'https://res.cloudinary.com/djfeplrup/image/upload/v1766196397/fashion-ecommerce/file_ed4g6i.jpg';
+    let images = toArrayFlexible(body?.['images[]'] ?? body?.images, 'images');
+    if (files && files.length > 0) {
+      const uploaded = await this.cloudinary.uploadMultipleImages(files);
+      images = [...images, ...uploaded];
+    }
+
+    // Filter out unwanted placeholder image
+    images = images.filter(img => img !== PLACEHOLDER_IMAGE);
+
+    // 3. Process Sizes & Colors
+    const sizes = toArrayFlexible(body?.['sizes[]'] ?? body?.sizes, 'sizes');
+    const colors = toArrayFlexible(body?.['colors[]'] ?? body?.colors, 'colors');
+
+    // 4. Process Variants
     let variants: any[] = [];
     if (body?.variants) {
       if (typeof body.variants === 'string') {
@@ -224,41 +176,60 @@ export class ProductController {
         variants = body.variants;
       }
     } else {
-      // Check for indexed variants (variants[0][sizeId], variants[0][stock], etc.)
       let i = 0;
       while (body?.[`variants[${i}][sizeId]`] !== undefined) {
         variants.push({
           sizeId: normalize(body[`variants[${i}][sizeId]`]),
           colorId: normalize(body[`variants[${i}][colorId]`]),
-          stock: parseInt(String(body[`variants[${i}][stock]`])),
+          stock: parseInt(String(body[`variants[${i}][stock]`]) || '0'),
           price: body[`variants[${i}][price]`] ? parseFloat(String(body[`variants[${i}][price]`])) : undefined,
         });
         i++;
       }
     }
 
-    const dto: any = {
+    // 5. Build DTO
+    const price = parseFloat(String(body?.price));
+    if (isNaN(price)) throw new BadRequestException('price.invalid');
+
+    const categoryId = normalize(body?.categoryId);
+    const subCategoryId = normalize(body?.subCategoryId);
+    if (!categoryId || !Types.ObjectId.isValid(categoryId)) throw new BadRequestException('categoryId.invalid');
+    if (!subCategoryId || !Types.ObjectId.isValid(subCategoryId)) throw new BadRequestException('subCategoryId.invalid');
+
+    const isActive = body?.isActive !== undefined
+      ? (String(body.isActive).toLowerCase() === 'true' || body.isActive === '1' || body.isActive === 1)
+      : true;
+
+    const createDto: CreateProductDto = {
       name,
       description,
       images,
-      price: priceNum,
-      currency,
+      price,
+      currency: normalize(body?.currency) || 'EGP',
       sizes,
       colors,
       variants,
       categoryId,
       subCategoryId,
-      type,
-    };
-    if (typeof isActiveBool !== 'undefined') dto.isActive = isActiveBool;
+      isActive,
+      type: normalize(body?.type) || 'normal',
+    } as CreateProductDto;
 
-    return this.productService.create(dto);
+    return this.productService.create(createDto);
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   async update(@Param('id') id: string, @Body() updateDto: UpdateProductDto) {
+    const PLACEHOLDER_IMAGE = 'https://res.cloudinary.com/djfeplrup/image/upload/v1766196397/fashion-ecommerce/file_ed4g6i.jpg';
+
+    // If images are provided in update, filter out the placeholder
+    if (updateDto.images && Array.isArray(updateDto.images)) {
+      updateDto.images = updateDto.images.filter(img => img !== PLACEHOLDER_IMAGE);
+    }
+
     return this.productService.update(id, updateDto);
   }
 
