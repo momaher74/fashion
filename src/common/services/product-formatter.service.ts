@@ -48,6 +48,8 @@ export class ProductFormatterService {
     offers: OfferDocument[],
     language: Language = Language.AR,
   ): FormattedProduct {
+
+    console.log(language);
     const now = new Date();
     const activeOffers = offers.filter(
       (offer) =>
@@ -172,7 +174,14 @@ export class ProductFormatterService {
    * Gets localized text from multilingual object
    */
   private getLocalizedText(text: Multilingual, language: Language): string {
-    return text[language] || text.en || text.ar || '';
+    if (!text) {
+      return '';
+    }
+    if (typeof (text as any) === 'string') {
+      return text as unknown as string;
+    }
+    const localized = (text as any)[language] ?? (text as any).en ?? (text as any).ar;
+    return typeof localized === 'string' ? localized : '';
   }
 }
 

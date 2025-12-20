@@ -28,7 +28,7 @@ import { HomeModule } from './home/home.module';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGODB_URI') || 'mongodb+srv://elomdamohamedmaher:iUInmxqWMLZrrTmH@cluster0.foqzb.mongodb.net/fashion_commerce?retryWrites=true&w=majority&appName=Cluster0',
+        uri: configService.get<string>('MONGODB_URI') ,
       }),
       inject: [ConfigService],
     }),

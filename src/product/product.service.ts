@@ -49,24 +49,37 @@ export class ProductService {
   ) {
     const query: any = { isActive: true };
 
-    if (filterDto.categoryId) {
+    if (filterDto.categoryId && Types.ObjectId.isValid(filterDto.categoryId)) {
       query.categoryId = new Types.ObjectId(filterDto.categoryId);
     }
 
-    if (filterDto.subCategoryId) {
+    if (
+      filterDto.subCategoryId &&
+      Types.ObjectId.isValid(filterDto.subCategoryId)
+    ) {
       query.subCategoryId = new Types.ObjectId(filterDto.subCategoryId);
     }
 
     if (filterDto.sizes && filterDto.sizes.length > 0) {
-      query.sizes = {
-        $in: filterDto.sizes.map((id) => new Types.ObjectId(id)),
-      };
+      const validSizeIds = filterDto.sizes.filter((id) =>
+        Types.ObjectId.isValid(id),
+      );
+      if (validSizeIds.length > 0) {
+        query.sizes = {
+          $in: validSizeIds.map((id) => new Types.ObjectId(id)),
+        };
+      }
     }
 
     if (filterDto.colors && filterDto.colors.length > 0) {
-      query.colors = {
-        $in: filterDto.colors.map((id) => new Types.ObjectId(id)),
-      };
+      const validColorIds = filterDto.colors.filter((id) =>
+        Types.ObjectId.isValid(id),
+      );
+      if (validColorIds.length > 0) {
+        query.colors = {
+          $in: validColorIds.map((id) => new Types.ObjectId(id)),
+        };
+      }
     }
 
     if (filterDto.minPrice !== undefined || filterDto.maxPrice !== undefined) {
