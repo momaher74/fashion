@@ -24,7 +24,7 @@ export class OrderService {
     private productFormatter: ProductFormatterService,
     private userService: UserService,
     private notificationService: NotificationService,
-  ) {}
+  ) { }
 
   async create(userId: string, createOrderDto: CreateOrderDto) {
     const cart = await this.cartModel.findOne({
@@ -52,13 +52,50 @@ export class OrderService {
           language,
         );
 
+        // Find if this specific combination has a variant-specific price
+        const variant = product.variants?.find(
+          (v) =>
+            v.sizeId.toString() === item.size.toString() &&
+            v.colorId.toString() === item.color.toString(),
+        );
+
+        // If variant has a different price, recalculate final price
+        let itemFinalPrice = formatted.finalPrice;
+        let itemBasePrice = product.price;
+
+        if (variant && variant.price !== undefined) {
+          itemBasePrice = variant.price;
+          // Re-calculate discount based on variant price
+          const activeOffers = offers.filter(
+            (offer) =>
+              offer.isActive &&
+              new Date() >= offer.startDate &&
+              new Date() <= offer.endDate &&
+              (offer.scope === 'global' ||
+                (offer.scope === 'product' &&
+                  offer.productId?.toString() === product._id.toString())),
+          );
+
+          let bestDiscount = 0;
+          for (const offer of activeOffers) {
+            const discount =
+              offer.type === 'percentage'
+                ? (variant.price * offer.value) / 100
+                : Math.min(offer.value, variant.price);
+            if (discount > bestDiscount) {
+              bestDiscount = discount;
+            }
+          }
+          itemFinalPrice = Math.max(0, variant.price - bestDiscount);
+        }
+
         return {
           productId: product._id.toString(),
           name: product.name,
           description: product.description,
           images: product.images,
-          price: product.price,
-          finalPrice: formatted.finalPrice,
+          price: itemBasePrice,
+          finalPrice: itemFinalPrice,
           currency: product.currency,
           size: item.size,
           color: item.color,

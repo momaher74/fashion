@@ -18,7 +18,7 @@ export class CartService {
     @InjectModel(Offer.name) private offerModel: Model<OfferDocument>,
     private productFormatter: ProductFormatterService,
     private userService: UserService,
-  ) {}
+  ) { }
 
   async getOrCreateCart(userId: string): Promise<CartDocument> {
     let cart = await this.cartModel.findOne({ userId: new Types.ObjectId(userId) });
@@ -68,8 +68,8 @@ export class CartService {
       cart.items.map(async (item) => {
         const product = await this.productModel
           .findById(item.productId)
-          .populate('sizes', 'name')
-          .populate('colors', 'name hexCode');
+          .populate({ path: 'sizes', model: 'Size' })
+          .populate({ path: 'colors', model: 'Color' });
         if (!product) return null;
 
         const formatted = this.productFormatter.formatProduct(
@@ -77,6 +77,40 @@ export class CartService {
           offers,
           lang,
         );
+
+        // Find if this specific combination has a variant-specific price
+        const variant = product.variants?.find(
+          (v) =>
+            v.sizeId.toString() === item.size.toString() &&
+            v.colorId.toString() === item.color.toString(),
+        );
+
+        // If variant has a different price, recalculate final price for this item
+        let itemPrice = formatted.finalPrice;
+        if (variant && variant.price !== undefined) {
+          // Re-calculate discount based on variant price
+          const activeOffers = offers.filter(
+            (offer) =>
+              offer.isActive &&
+              new Date() >= offer.startDate &&
+              new Date() <= offer.endDate &&
+              (offer.scope === 'global' ||
+                (offer.scope === 'product' &&
+                  offer.productId?.toString() === product._id.toString())),
+          );
+
+          let bestDiscount = 0;
+          for (const offer of activeOffers) {
+            const discount =
+              offer.type === 'percentage'
+                ? (variant.price * offer.value) / 100
+                : Math.min(offer.value, variant.price);
+            if (discount > bestDiscount) {
+              bestDiscount = discount;
+            }
+          }
+          itemPrice = Math.max(0, variant.price - bestDiscount);
+        }
 
         // Get size and color names
         const size = (product.sizes as any[]).find(
@@ -88,13 +122,17 @@ export class CartService {
 
         return {
           productId: item.productId.toString(),
-          product: formatted,
+          product: {
+            ...formatted,
+            price: variant?.price ?? formatted.price,
+            finalPrice: itemPrice,
+          },
           size: size ? size.name : item.size.toString(),
           color: color ? color.name : item.color.toString(),
           sizeId: item.size.toString(),
           colorId: item.color.toString(),
           quantity: item.quantity,
-          subtotal: formatted.finalPrice * item.quantity,
+          subtotal: itemPrice * item.quantity,
         };
       }),
     );

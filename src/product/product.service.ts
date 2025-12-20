@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Product, ProductDocument } from '../schemas/product.schema';
@@ -17,28 +17,55 @@ export class ProductService {
     @InjectModel(Offer.name) private offerModel: Model<OfferDocument>,
     @InjectModel(Cart.name) private cartModel: Model<CartDocument>,
     private productFormatter: ProductFormatterService,
-  ) {}
+  ) { }
 
   async create(createDto: CreateProductDto): Promise<ProductDocument> {
     const productData: any = { ...createDto };
-    
-    // Convert size and color string IDs to ObjectIds
-    if (createDto.sizes && createDto.sizes.length > 0) {
-      productData.sizes = createDto.sizes.map(
-        (id) => new Types.ObjectId(id),
-      );
+
+    // Validate and convert category/subcategory IDs
+    if (!Types.ObjectId.isValid(createDto.categoryId)) {
+      throw new BadRequestException('categoryId.invalid');
     }
-    
-    if (createDto.colors && createDto.colors.length > 0) {
-      productData.colors = createDto.colors.map(
-        (id) => new Types.ObjectId(id),
-      );
+    if (!Types.ObjectId.isValid(createDto.subCategoryId)) {
+      throw new BadRequestException('subCategoryId.invalid');
     }
-    
-    // Convert category and subcategory IDs to ObjectIds
     productData.categoryId = new Types.ObjectId(createDto.categoryId);
     productData.subCategoryId = new Types.ObjectId(createDto.subCategoryId);
-    
+
+    // Convert size and color string IDs to ObjectIds (filter invalid/falsy)
+    if (Array.isArray(createDto.sizes) && createDto.sizes.length > 0) {
+      const validSizeIds = createDto.sizes.filter(
+        (id) => typeof id === 'string' && Types.ObjectId.isValid(id),
+      );
+      productData.sizes = validSizeIds.map((id) => new Types.ObjectId(id));
+    } else {
+      productData.sizes = [];
+    }
+
+    if (Array.isArray(createDto.colors) && createDto.colors.length > 0) {
+      const validColorIds = createDto.colors.filter(
+        (id) => typeof id === 'string' && Types.ObjectId.isValid(id),
+      );
+      productData.colors = validColorIds.map((id) => new Types.ObjectId(id));
+    } else {
+      productData.colors = [];
+    }
+
+    // Convert variants string IDs to ObjectIds
+    if (Array.isArray(createDto.variants) && createDto.variants.length > 0) {
+      productData.variants = createDto.variants.map((variant) => ({
+        ...variant,
+        sizeId: new Types.ObjectId(variant.sizeId),
+        colorId: new Types.ObjectId(variant.colorId),
+        // If variant price is not provided, use the base product price
+        price: (variant.price !== undefined && variant.price !== null)
+          ? variant.price
+          : productData.price,
+      }));
+    } else {
+      productData.variants = [];
+    }
+
     const product = new this.productModel(productData);
     return product.save();
   }
@@ -94,11 +121,12 @@ export class ProductService {
 
     const products = await this.productModel
       .find(query)
-      .populate('sizes', 'name')
-      .populate('colors', 'name hexCode')
+      .populate({ path: 'sizes', model: 'Size' })
+      .populate({ path: 'colors', model: 'Color' })
       .populate('categoryId', 'name')
       .populate('subCategoryId', 'name')
       .exec();
+
     const offers = await this.offerModel.find({ isActive: true }).exec();
 
     return this.productFormatter.formatProducts(products, offers, language);
@@ -111,8 +139,8 @@ export class ProductService {
   ) {
     const product = await this.productModel
       .findById(id)
-      .populate('sizes', 'name')
-      .populate('colors', 'name hexCode')
+      .populate({ path: 'sizes', model: 'Size' })
+      .populate({ path: 'colors', model: 'Color' })
       .populate('categoryId', 'name')
       .populate('subCategoryId', 'name');
     if (!product) {
@@ -154,29 +182,46 @@ export class ProductService {
 
   async update(id: string, updateDto: UpdateProductDto) {
     const updateData: any = { ...updateDto };
-    
+
     // Convert category and subcategory IDs to ObjectIds if provided
     if (updateDto.categoryId) {
       updateData.categoryId = new Types.ObjectId(updateDto.categoryId);
     }
-    
+
     if (updateDto.subCategoryId) {
       updateData.subCategoryId = new Types.ObjectId(updateDto.subCategoryId);
     }
-    
+
     // Convert size and color string IDs to ObjectIds if provided
     if (updateDto.sizes && updateDto.sizes.length > 0) {
       updateData.sizes = updateDto.sizes.map(
         (sizeId) => new Types.ObjectId(sizeId),
       );
     }
-    
+
     if (updateDto.colors && updateDto.colors.length > 0) {
       updateData.colors = updateDto.colors.map(
         (colorId) => new Types.ObjectId(colorId),
       );
     }
-    
+
+    // Convert variants string IDs to ObjectIds if provided
+    if (updateDto.variants && Array.isArray(updateDto.variants)) {
+      // Get the existing product to have access to its price if not being updated
+      const existingProduct = await this.productModel.findById(id);
+      const basePrice = updateDto.price !== undefined ? updateDto.price : (existingProduct?.price || 0);
+
+      updateData.variants = updateDto.variants.map((variant) => ({
+        ...variant,
+        sizeId: new Types.ObjectId(variant.sizeId),
+        colorId: new Types.ObjectId(variant.colorId),
+        // If variant price is not provided, use the base product price
+        price: (variant.price !== undefined && variant.price !== null)
+          ? variant.price
+          : basePrice,
+      }));
+    }
+
     const product = await this.productModel.findByIdAndUpdate(id, updateData, {
       new: true,
     });

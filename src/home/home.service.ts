@@ -23,7 +23,7 @@ export class HomeService {
     private categoryService: CategoryService,
     private bannerService: BannerService,
     private productFormatter: ProductFormatterService,
-  ) {}
+  ) { }
 
   async getHomeData(language: Language = Language.AR, userId?: string) {
     // Get offers first as they're needed for product formatting
@@ -78,13 +78,13 @@ export class HomeService {
           { views: { $gt: 0 } },
         ],
       })
-      .populate('sizes', 'name')
-      .populate('colors', 'name hexCode')
+      .populate({ path: 'sizes', model: 'Size' })
+      .populate({ path: 'colors', model: 'Color' })
       .populate('categoryId', 'name')
       .populate('subCategoryId', 'name')
-      .sort({ 
-        views: -1, 
-        createdAt: -1 
+      .sort({
+        views: -1,
+        createdAt: -1
       })
       .limit(20)
       .exec();
@@ -147,7 +147,7 @@ export class HomeService {
         // Get recommended products or products from user's preferred categories
         const categoryArray = Array.from(categoryIds);
         const subCategoryArray = Array.from(subCategoryIds);
-        
+
         const query: any = { isActive: true };
         if (categoryArray.length > 0 || subCategoryArray.length > 0) {
           query.$or = [];
@@ -172,8 +172,8 @@ export class HomeService {
 
         recommendedProducts = await this.productModel
           .find(query)
-          .populate('sizes', 'name')
-          .populate('colors', 'name hexCode')
+          .populate({ path: 'sizes', model: 'Size' })
+          .populate({ path: 'colors', model: 'Color' })
           .populate('categoryId', 'name')
           .populate('subCategoryId', 'name')
           .sort({ createdAt: -1 })
@@ -189,8 +189,8 @@ export class HomeService {
           isActive: true,
           type: ProductType.RECOMMENDED,
         })
-        .populate('sizes', 'name')
-        .populate('colors', 'name hexCode')
+        .populate({ path: 'sizes', model: 'Size' })
+        .populate({ path: 'colors', model: 'Color' })
         .populate('categoryId', 'name')
         .populate('subCategoryId', 'name')
         .sort({ createdAt: -1 })
@@ -202,8 +202,8 @@ export class HomeService {
     if (recommendedProducts.length === 0) {
       recommendedProducts = await this.productModel
         .find({ isActive: true })
-        .populate('sizes', 'name')
-        .populate('colors', 'name hexCode')
+        .populate({ path: 'sizes', model: 'Size' })
+        .populate({ path: 'colors', model: 'Color' })
         .populate('categoryId', 'name')
         .populate('subCategoryId', 'name')
         .sort({ createdAt: -1 })

@@ -3,7 +3,7 @@ import { Document } from 'mongoose';
 
 export type SizeDocument = Size & Document;
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, collection: 'sizes' })
 export class Size {
   @Prop({ required: true, unique: true })
   name: string;

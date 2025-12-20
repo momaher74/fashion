@@ -3,7 +3,7 @@ import { Document } from 'mongoose';
 
 export type ColorDocument = Color & Document;
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, collection: 'colors' })
 export class Color {
   @Prop({ required: true, unique: true })
   name: string;

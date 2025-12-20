@@ -20,8 +20,15 @@ export interface FormattedProduct {
     value: number;
     discount: number;
   };
-  sizes: string[];
-  colors: string[];
+  sizes: Array<{
+    id: string;
+    name: string;
+  }>;
+  colors: Array<{
+    id: string;
+    name: string;
+    hexCode?: string;
+  }>;
   category: {
     id: string;
     name: string;
@@ -32,6 +39,12 @@ export interface FormattedProduct {
     name: string;
     nameMultilingual?: any;
   };
+  variants: Array<{
+    sizeId: string;
+    colorId: string;
+    stock: number;
+    price?: number;
+  }>;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -49,7 +62,6 @@ export class ProductFormatterService {
     language: Language = Language.AR,
   ): FormattedProduct {
 
-    console.log(language);
     const now = new Date();
     const activeOffers = offers.filter(
       (offer) =>
@@ -87,58 +99,97 @@ export class ProductFormatterService {
       currency: product.currency,
       offerApplied: bestOffer
         ? {
-            title: this.getLocalizedText(bestOffer.title, language),
-            type: bestOffer.type,
-            value: bestOffer.value,
-            discount: bestDiscount,
-          }
+          title: this.getLocalizedText(bestOffer.title, language),
+          type: bestOffer.type,
+          value: bestOffer.value,
+          discount: bestDiscount,
+        }
         : undefined,
       sizes: Array.isArray(product.sizes)
-        ? product.sizes.map((s: any) => (typeof s === 'object' ? s.name : s))
+        ? (product.sizes
+          .map((s: any) => {
+            // Check if it's a populated document (has _id AND name properties)
+            if (s && typeof s === 'object' && s._id && s.name) {
+              // Only include active sizes
+              if (s.isActive === false) {
+                return null;
+              }
+              return {
+                id: s._id.toString(),
+                name: s.name,
+              };
+            }
+            return null;
+          })
+          .filter((item) => item !== null) as any)
         : [],
       colors: Array.isArray(product.colors)
-        ? product.colors.map((c: any) => (typeof c === 'object' ? c.name : c))
+        ? (product.colors
+          .map((c: any) => {
+            // Check if it's a populated document (has _id AND name properties)
+            if (c && typeof c === 'object' && c._id && c.name) {
+              // Only include active colors
+              if (c.isActive === false) {
+                return null;
+              }
+              return {
+                id: c._id.toString(),
+                name: c.name,
+                hexCode: c.hexCode,
+              };
+            }
+            return null;
+          })
+          .filter((item) => item !== null) as any)
         : [],
       category: product.categoryId
         ? {
-            id: (product.categoryId as any)._id
-              ? (product.categoryId as any)._id.toString()
-              : (product.categoryId as any).toString(),
-            name:
-              typeof product.categoryId === 'object' &&
+          id: (product.categoryId as any)._id
+            ? (product.categoryId as any)._id.toString()
+            : (product.categoryId as any).toString(),
+          name:
+            typeof product.categoryId === 'object' &&
               (product.categoryId as any).name
-                ? this.getLocalizedText(
-                    (product.categoryId as any).name,
-                    language,
-                  )
-                : '',
-            nameMultilingual:
-              typeof product.categoryId === 'object' &&
+              ? this.getLocalizedText(
+                (product.categoryId as any).name,
+                language,
+              )
+              : '',
+          nameMultilingual:
+            typeof product.categoryId === 'object' &&
               (product.categoryId as any).name
-                ? (product.categoryId as any).name
-                : undefined,
-          }
+              ? (product.categoryId as any).name
+              : undefined,
+        }
         : { id: '', name: '' },
       subCategory: product.subCategoryId
         ? {
-            id: (product.subCategoryId as any)._id
-              ? (product.subCategoryId as any)._id.toString()
-              : (product.subCategoryId as any).toString(),
-            name:
-              typeof product.subCategoryId === 'object' &&
+          id: (product.subCategoryId as any)._id
+            ? (product.subCategoryId as any)._id.toString()
+            : (product.subCategoryId as any).toString(),
+          name:
+            typeof product.subCategoryId === 'object' &&
               (product.subCategoryId as any).name
-                ? this.getLocalizedText(
-                    (product.subCategoryId as any).name,
-                    language,
-                  )
-                : '',
-            nameMultilingual:
-              typeof product.subCategoryId === 'object' &&
+              ? this.getLocalizedText(
+                (product.subCategoryId as any).name,
+                language,
+              )
+              : '',
+          nameMultilingual:
+            typeof product.subCategoryId === 'object' &&
               (product.subCategoryId as any).name
-                ? (product.subCategoryId as any).name
-                : undefined,
-          }
+              ? (product.subCategoryId as any).name
+              : undefined,
+        }
         : { id: '', name: '' },
+      variants: Array.isArray(product.variants)
+        ? product.variants.map((v) => ({
+          sizeId: v.sizeId.toString(),
+          colorId: v.colorId.toString(),
+          stock: v.stock,
+          price: v.price,
+        }))
+        : [],
       isActive: product.isActive,
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,

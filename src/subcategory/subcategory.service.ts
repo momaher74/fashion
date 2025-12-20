@@ -33,7 +33,7 @@ export class SubCategoryService {
     language: Language = Language.AR,
   ): Promise<any[]> {
     const query: any = { isActive: true };
-    if (categoryId) {
+    if (categoryId && Types.ObjectId.isValid(categoryId)) {
       query.categoryId = new Types.ObjectId(categoryId);
     }
 
@@ -42,17 +42,26 @@ export class SubCategoryService {
       .populate('categoryId', 'name')
       .exec();
 
-    return subCategories.map((subCat) => ({
-      id: subCat._id.toString(),
-      name: subCat.name[language] || subCat.name.en || subCat.name.ar,
-      nameMultilingual: subCat.name,
-      categoryId: subCat.categoryId.toString(),
-      category: subCat.categoryId,
-      image: subCat.image,
-      isActive: subCat.isActive,
-      createdAt: subCat.createdAt,
-      updatedAt: subCat.updatedAt,
-    }));
+    return subCategories.map((subCat) => {
+      const cat: any = subCat.categoryId as any;
+      const catId = cat
+        ? (cat._id ? String(cat._id) : (typeof cat.toString === 'function' ? cat.toString() : ''))
+        : '';
+      const catName = cat && cat.name
+        ? (cat.name[language] || cat.name.en || cat.name.ar || '')
+        : '';
+      return {
+        id: subCat._id.toString(),
+        name: subCat.name[language] || subCat.name.en || subCat.name.ar,
+        nameMultilingual: subCat.name,
+        categoryId: catId,
+        category: cat && cat.name ? { id: catId, name: catName, nameMultilingual: cat.name } : cat ?? undefined,
+        image: subCat.image,
+        isActive: subCat.isActive,
+        createdAt: subCat.createdAt,
+        updatedAt: subCat.updatedAt,
+      };
+    });
   }
 
   async findById(id: string, language: Language = Language.EN): Promise<any> {

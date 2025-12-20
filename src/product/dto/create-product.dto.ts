@@ -22,6 +22,25 @@ class MultilingualDto {
   en: string;
 }
 
+class ProductVariantDto {
+  @IsString()
+  @IsNotEmpty()
+  sizeId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  colorId: string;
+
+  @IsNumber()
+  @Min(0)
+  stock: number;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  price?: number;
+}
+
 export class CreateProductDto {
   @ValidateNested()
   @Type(() => MultilingualDto)
@@ -56,6 +75,12 @@ export class CreateProductDto {
   @IsString({ each: true })
   @IsOptional()
   colors?: string[]; // Array of Color ObjectIds
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ProductVariantDto)
+  @IsOptional()
+  variants?: ProductVariantDto[];
 
   @IsString()
   @IsNotEmpty()
