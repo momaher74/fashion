@@ -183,12 +183,17 @@ export class ProductFormatterService {
         }
         : { id: '', name: '' },
       variants: Array.isArray(product.variants)
-        ? product.variants.map((v) => ({
-          sizeId: v.sizeId.toString(),
-          colorId: v.colorId.toString(),
-          stock: v.stock,
-          price: v.price,
-        }))
+        ? product.variants.map((v) => {
+          const variantPrice = v.price || product.price;
+          const discount = bestOffer ? this.calculateDiscount(variantPrice, bestOffer) : 0;
+          return {
+            sizeId: v.sizeId.toString(),
+            colorId: v.colorId.toString(),
+            stock: v.stock,
+            price: variantPrice,
+            finalPrice: Math.max(0, variantPrice - discount),
+          };
+        })
         : [],
       isActive: product.isActive,
       createdAt: product.createdAt,
@@ -224,7 +229,7 @@ export class ProductFormatterService {
   /**
    * Gets localized text from multilingual object
    */
-  private getLocalizedText(text: Multilingual, language: Language): string {
+  public getLocalizedText(text: Multilingual, language: Language): string {
     if (!text) {
       return '';
     }

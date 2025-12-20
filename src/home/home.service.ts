@@ -27,18 +27,29 @@ export class HomeService {
 
   async getHomeData(language: Language = Language.AR, userId?: string) {
     // Get offers first as they're needed for product formatting
-    const offers = await this.getActiveOffers();
+    const rawOffers = await this.getActiveOffers();
 
     // Get all other data in parallel
     const [categories, banners, popularProducts, recommendedProducts] =
       await Promise.all([
         this.getMainCategories(language),
         this.getBanners(language),
-        this.getPopularProducts(language, offers),
-        this.getRecommendedProducts(language, userId, offers),
+        this.getPopularProducts(language, rawOffers),
+        this.getRecommendedProducts(language, userId, rawOffers),
       ]);
 
+    // Format offers for the home response
+    const formattedOffers = rawOffers.map(offer => ({
+      id: offer._id.toString(),
+      title: this.productFormatter.getLocalizedText(offer.title, language),
+      type: offer.type,
+      value: offer.value,
+      scope: offer.scope,
+      endDate: offer.endDate,
+    }));
+
     return {
+      offers: formattedOffers, // Added this
       categories,
       banners,
       popularProducts,
