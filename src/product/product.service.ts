@@ -119,6 +119,16 @@ export class ProductService {
       }
     }
 
+    if (filterDto.search) {
+      const searchRegex = new RegExp(filterDto.search, 'i');
+      query.$or = [
+        { 'name.en': searchRegex },
+        { 'name.ar': searchRegex },
+        { 'description.en': searchRegex },
+        { 'description.ar': searchRegex },
+      ];
+    }
+
     const products = await this.productModel
       .find(query)
       .populate({ path: 'sizes', model: 'Size' })
