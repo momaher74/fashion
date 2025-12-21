@@ -74,12 +74,14 @@ export class ProductService {
     filterDto: FilterProductDto,
     language: Language = Language.AR,
   ) {
+    const { page = 1, limit = 10 } = filterDto;
+    const skip = (page - 1) * limit;
+
     const query: any = { isActive: true };
 
     if (filterDto.categoryId && Types.ObjectId.isValid(filterDto.categoryId)) {
       query.categoryId = new Types.ObjectId(filterDto.categoryId);
     }
-
     if (
       filterDto.subCategoryId &&
       Types.ObjectId.isValid(filterDto.subCategoryId)
@@ -129,17 +131,34 @@ export class ProductService {
       ];
     }
 
-    const products = await this.productModel
-      .find(query)
-      .populate({ path: 'sizes', model: 'Size' })
-      .populate({ path: 'colors', model: 'Color' })
-      .populate('categoryId', 'name')
-      .populate('subCategoryId', 'name')
-      .exec();
+    const [products, totalProducts] = await Promise.all([
+      this.productModel
+        .find(query)
+        .populate({ path: 'sizes', model: 'Size' })
+        .populate({ path: 'colors', model: 'Color' })
+        .populate('categoryId', 'name')
+        .populate('subCategoryId', 'name')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      this.productModel.countDocuments(query),
+    ]);
 
     const offers = await this.offerModel.find({ isActive: true }).exec();
+    const formattedProducts = this.productFormatter.formatProducts(
+      products,
+      offers,
+      language,
+    );
 
-    return this.productFormatter.formatProducts(products, offers, language);
+    return {
+      products: formattedProducts,
+      total: totalProducts,
+      page,
+      limit,
+      pages: Math.ceil(totalProducts / limit),
+    };
   }
 
   async findOne(
