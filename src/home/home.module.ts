@@ -7,6 +7,7 @@ import { Product, ProductSchema } from '../schemas/product.schema';
 import { Offer, OfferSchema } from '../schemas/offer.schema';
 import { Banner, BannerSchema } from '../schemas/banner.schema';
 import { Order, OrderSchema } from '../schemas/order.schema';
+import { User, UserSchema } from '../schemas/user.schema';
 import { CategoryModule } from '../category/category.module';
 import { BannerModule } from '../banner/banner.module';
 import { CommonModule } from '../common/common.module';
@@ -20,6 +21,7 @@ import { StoriesModule } from '../stories/stories.module';
       { name: Offer.name, schema: OfferSchema },
       { name: Banner.name, schema: BannerSchema },
       { name: Order.name, schema: OrderSchema },
+      { name: User.name, schema: UserSchema },
     ]),
     CategoryModule,
     BannerModule,

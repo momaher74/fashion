@@ -12,6 +12,7 @@ import { CategoryService } from '../category/category.service';
 import { BannerService } from '../banner/banner.service';
 import { ProductFormatterService } from '../common/services/product-formatter.service';
 import { StoriesService } from '../stories/stories.service';
+import { User, UserDocument } from '../schemas/user.schema';
 
 @Injectable()
 export class HomeService {
@@ -25,6 +26,7 @@ export class HomeService {
     private bannerService: BannerService,
     private storiesService: StoriesService,
     private productFormatter: ProductFormatterService,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
   ) { }
 
   async getHomeData(language: Language = Language.AR, userId?: string) {
@@ -37,7 +39,7 @@ export class HomeService {
         this.getMainCategories(language),
         this.getBanners(language),
         this.storiesService.findActive(language, userId),
-        this.getPopularProducts(language, rawOffers),
+        this.getPopularProducts(language, rawOffers, userId),
         this.getRecommendedProducts(language, userId, rawOffers),
       ]);
 
@@ -87,6 +89,7 @@ export class HomeService {
   private async getPopularProducts(
     language: Language,
     offers: OfferDocument[],
+    userId?: string,
   ) {
     // Get popular products (type = popular or most viewed)
     const products = await this.productModel
@@ -108,7 +111,19 @@ export class HomeService {
       .limit(20)
       .exec();
 
-    return this.productFormatter.formatProducts(products, offers, language);
+    const formatted = this.productFormatter.formatProducts(products, offers, language);
+
+    if (userId) {
+      const user = await this.userModel.findById(userId).select('wishlist').exec();
+      if (user && user.wishlist) {
+        const wishlistIds = user.wishlist.map(id => id.toString());
+        formatted.forEach(p => {
+          p.inFavourite = wishlistIds.includes(p.id);
+        });
+      }
+    }
+
+    return formatted;
   }
 
   private async getRecommendedProducts(
@@ -230,10 +245,22 @@ export class HomeService {
         .exec();
     }
 
-    return this.productFormatter.formatProducts(
+    const formatted = this.productFormatter.formatProducts(
       recommendedProducts,
       offers,
       language,
     );
+
+    if (userId) {
+      const user = await this.userModel.findById(userId).select('wishlist').exec();
+      if (user && user.wishlist) {
+        const wishlistIds = user.wishlist.map(id => id.toString());
+        formatted.forEach(p => {
+          p.inFavourite = wishlistIds.includes(p.id);
+        });
+      }
+    }
+
+    return formatted;
   }
 }

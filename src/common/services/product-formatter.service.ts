@@ -46,6 +46,7 @@ export interface FormattedProduct {
     price?: number;
   }>;
   isActive: boolean;
+  inFavourite?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

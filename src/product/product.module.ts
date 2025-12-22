@@ -11,6 +11,7 @@ import { Color, ColorSchema } from '../schemas/color.schema';
 import { Size, SizeSchema } from '../schemas/size.schema';
 import { Category, CategorySchema } from '../schemas/category.schema';
 import { SubCategory, SubCategorySchema } from '../schemas/subcategory.schema';
+import { User, UserSchema } from '../schemas/user.schema';
 
 
 @Module({
@@ -23,6 +24,7 @@ import { SubCategory, SubCategorySchema } from '../schemas/subcategory.schema';
       { name: Color.name, schema: ColorSchema },
       { name: Category.name, schema: CategorySchema },
       { name: SubCategory.name, schema: SubCategorySchema },
+      { name: User.name, schema: UserSchema },
     ]),
     CommonModule,
     UserModule,

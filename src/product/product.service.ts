@@ -8,6 +8,7 @@ import { Category, CategoryDocument } from '../schemas/category.schema';
 import { SubCategory, SubCategoryDocument } from '../schemas/subcategory.schema';
 import { Size, SizeDocument } from '../schemas/size.schema';
 import { Color, ColorDocument } from '../schemas/color.schema';
+import { User, UserDocument } from '../schemas/user.schema';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { FilterProductDto } from './dto/filter-product.dto';
@@ -25,6 +26,7 @@ export class ProductService {
     @InjectModel(SubCategory.name) private subCategoryModel: Model<SubCategoryDocument>,
     @InjectModel(Size.name) private sizeModel: Model<SizeDocument>,
     @InjectModel(Color.name) private colorModel: Model<ColorDocument>,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
     private productFormatter: ProductFormatterService,
   ) { }
 
@@ -147,6 +149,7 @@ export class ProductService {
   async findAll(
     filterDto: FilterProductDto,
     language: Language = Language.AR,
+    userId?: string,
   ) {
     const { page = 1, limit = 10 } = filterDto;
     const skip = (page - 1) * limit;
@@ -323,8 +326,22 @@ export class ProductService {
       language,
     );
 
+    // If userId provided, check wishlist
+    let wishlistProductIds: string[] = [];
+    if (userId) {
+      const user = await this.userModel.findById(userId).select('wishlist').exec();
+      if (user && user.wishlist) {
+        wishlistProductIds = user.wishlist.map(id => id.toString());
+      }
+    }
+
+    const productsWithFavourite = formattedProducts.map(p => ({
+      ...p,
+      inFavourite: wishlistProductIds.includes(p.id)
+    }));
+
     return {
-      products: formattedProducts,
+      products: productsWithFavourite,
       total: totalProducts,
       page,
       limit,
@@ -373,11 +390,21 @@ export class ProductService {
       }
     }
 
-    return {
+    const result = {
       ...formatted,
       inCart,
       quantity,
+      inFavourite: false,
     };
+
+    if (userId) {
+      const user = await this.userModel.findById(userId).select('wishlist').exec();
+      if (user && user.wishlist) {
+        result.inFavourite = user.wishlist.some(wid => wid.toString() === id);
+      }
+    }
+
+    return result;
   }
 
   async update(id: string, updateDto: UpdateProductDto) {
@@ -439,10 +466,5 @@ export class ProductService {
     return { message: 'Product deleted' };
   }
 
-  async getCategories() {
-    // This method is deprecated - use /api/categories endpoint instead
-    // Keeping for backward compatibility
-    return [];
-  }
 }
 

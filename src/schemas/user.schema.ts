@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { Role } from '../common/enums/role.enum';
 import { Language } from '../common/enums/language.enum';
 import { AuthProvider } from '../common/enums/auth-provider.enum';
@@ -34,6 +34,9 @@ export class User {
 
   @Prop()
   avatar?: string;
+
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Product' }], default: [] })
+  wishlist: Types.ObjectId[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

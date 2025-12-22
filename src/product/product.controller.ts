@@ -41,17 +41,21 @@ export class ProductController {
   ) { }
 
   @Get()
+  @UseGuards(OptionalJwtAuthGuard)
   async findAll(
     @Query() filterDto: FilterProductDto,
     @LanguageHeader() language: Language,
+    @CurrentUser() user?: any,
   ) {
-    return this.productService.findAll(filterDto, language);
+    let userId: string | undefined;
+    if (user) {
+      const dbUser = await this.userService.findById(user.id);
+      userId = dbUser._id.toString();
+    }
+    return this.productService.findAll(filterDto, language, userId);
   }
 
-  @Get('categories')
-  async getCategories() {
-    return this.productService.getCategories();
-  }
+
 
   @Get('filter-options')
   async getFilterOptions(@LanguageHeader() language: Language) {

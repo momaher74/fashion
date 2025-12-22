@@ -19,6 +19,7 @@ import { SubCategoryModule } from './subcategory/subcategory.module';
 import { BannerModule } from './banner/banner.module';
 import { HomeModule } from './home/home.module';
 import { StoriesModule } from './stories/stories.module';
+import { WishlistModule } from './wishlist/wishlist.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { StoriesModule } from './stories/stories.module';
     BannerModule,
     HomeModule,
     StoriesModule,
+    WishlistModule,
   ],
 })
 export class AppModule { }
