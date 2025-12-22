@@ -11,6 +11,7 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
+import { SubCategoryService } from '../subcategory/subcategory.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/enums/role.enum';
@@ -27,8 +28,27 @@ import { Express } from 'express';
 export class CategoryController {
   constructor(
     private readonly categoryService: CategoryService,
+    private readonly subCategoryService: SubCategoryService,
     private readonly cloudinary: CloudinaryService,
-  ) {}
+  ) { }
+
+  @Get('active-with-subcategories')
+  async getActiveWithSubCategories(@LanguageHeader() language: Language) {
+    const categories = await this.categoryService.findAll(language);
+    const subCategories = await this.subCategoryService.findAll(
+      undefined,
+      language,
+    );
+
+    return categories.map((category) => {
+      return {
+        ...category,
+        subCategories: subCategories.filter(
+          (sub) => sub.categoryId === category.id,
+        ),
+      };
+    });
+  }
 
   @Get()
   async findAll(@LanguageHeader() language: Language) {
@@ -62,7 +82,7 @@ export class CategoryController {
           const parsed = typeof rawName === 'string' ? JSON.parse(rawName) : rawName;
           nameAr = nameAr ?? normalize(parsed?.ar);
           nameEn = nameEn ?? normalize(parsed?.en);
-        } catch (_) {}
+        } catch (_) { }
       }
     }
     const name: any = {};
@@ -100,7 +120,7 @@ export class CategoryController {
         const parsed = typeof body.name === 'string' ? JSON.parse(body.name) : body.name;
         nameAr = nameAr ?? normalize(parsed?.ar);
         nameEn = nameEn ?? normalize(parsed?.en);
-      } catch (_) {}
+      } catch (_) { }
     }
     if (nameAr !== undefined || nameEn !== undefined) {
       const name: any = {};
