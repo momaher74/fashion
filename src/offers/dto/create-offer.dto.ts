@@ -38,6 +38,14 @@ export class CreateOfferDto {
   @IsOptional()
   productId?: string;
 
+  @IsMongoId()
+  @IsOptional()
+  categoryId?: string;
+
+  @IsMongoId()
+  @IsOptional()
+  subCategoryId?: string;
+
   @IsEnum(OfferType)
   @IsNotEmpty()
   type: OfferType;

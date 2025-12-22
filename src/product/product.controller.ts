@@ -53,6 +53,11 @@ export class ProductController {
     return this.productService.getCategories();
   }
 
+  @Get('filter-options')
+  async getFilterOptions(@LanguageHeader() language: Language) {
+    return this.productService.getFilterOptions(language);
+  }
+
   @Get(':id')
   @UseGuards(OptionalJwtAuthGuard)
   async findOne(

@@ -9,7 +9,7 @@ import { UpdateOfferDto } from './dto/update-offer.dto';
 export class OffersService {
   constructor(
     @InjectModel(Offer.name) private offerModel: Model<OfferDocument>,
-  ) {}
+  ) { }
 
   async create(createDto: CreateOfferDto): Promise<OfferDocument> {
     const offer = new this.offerModel({
@@ -21,7 +21,12 @@ export class OffersService {
   }
 
   async findAll(): Promise<OfferDocument[]> {
-    return this.offerModel.find().populate('productId').exec();
+    return this.offerModel
+      .find()
+      .populate('productId')
+      .populate('categoryId')
+      .populate('subCategoryId')
+      .exec();
   }
 
   async findActive(): Promise<OfferDocument[]> {
@@ -33,11 +38,17 @@ export class OffersService {
         endDate: { $gte: now },
       })
       .populate('productId')
+      .populate('categoryId')
+      .populate('subCategoryId')
       .exec();
   }
 
   async findOne(id: string): Promise<OfferDocument> {
-    const offer = await this.offerModel.findById(id).populate('productId');
+    const offer = await this.offerModel
+      .findById(id)
+      .populate('productId')
+      .populate('categoryId')
+      .populate('subCategoryId');
     if (!offer) {
       throw new NotFoundException('offer.not_found');
     }

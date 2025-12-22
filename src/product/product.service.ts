@@ -4,11 +4,16 @@ import { Model, Types } from 'mongoose';
 import { Product, ProductDocument } from '../schemas/product.schema';
 import { Offer, OfferDocument } from '../schemas/offer.schema';
 import { Cart, CartDocument } from '../schemas/cart.schema';
+import { Category, CategoryDocument } from '../schemas/category.schema';
+import { SubCategory, SubCategoryDocument } from '../schemas/subcategory.schema';
+import { Size, SizeDocument } from '../schemas/size.schema';
+import { Color, ColorDocument } from '../schemas/color.schema';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { FilterProductDto } from './dto/filter-product.dto';
 import { ProductFormatterService } from '../common/services/product-formatter.service';
 import { Language } from '../common/enums/language.enum';
+import { ProductSort } from '../common/enums/product-sort.enum';
 
 @Injectable()
 export class ProductService {
@@ -16,6 +21,10 @@ export class ProductService {
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
     @InjectModel(Offer.name) private offerModel: Model<OfferDocument>,
     @InjectModel(Cart.name) private cartModel: Model<CartDocument>,
+    @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
+    @InjectModel(SubCategory.name) private subCategoryModel: Model<SubCategoryDocument>,
+    @InjectModel(Size.name) private sizeModel: Model<SizeDocument>,
+    @InjectModel(Color.name) private colorModel: Model<ColorDocument>,
     private productFormatter: ProductFormatterService,
   ) { }
 
@@ -70,6 +79,71 @@ export class ProductService {
     return product.save();
   }
 
+  async getFilterOptions(language: Language = Language.AR) {
+    const [categories, sizes, colors, offers] = await Promise.all([
+      this.categoryModel.find({ isActive: true }).exec(),
+      this.sizeModel.find({ isActive: true }).exec(),
+      this.colorModel.find({ isActive: true }).exec(),
+      this.offerModel.find({
+        isActive: true,
+        startDate: { $lte: new Date() },
+        endDate: { $gte: new Date() },
+      }).exec(),
+    ]);
+
+    // Get subcategories as well
+    const subCategories = await this.subCategoryModel.find({ isActive: true }).exec();
+
+    return {
+      categories: categories.map(c => ({
+        id: c._id.toString(),
+        name: this.productFormatter.getLocalizedText(c.name, language),
+      })),
+      subCategories: subCategories.map(s => ({
+        id: s._id.toString(),
+        name: this.productFormatter.getLocalizedText(s.name, language),
+        categoryId: s.categoryId?.toString(),
+      })),
+      sizes: sizes.map(s => ({
+        id: s._id.toString(),
+        name: s.name,
+      })),
+      colors: colors.map(c => ({
+        id: c._id.toString(),
+        name: c.name,
+        hexCode: c.hexCode,
+      })),
+      discounts: offers.map(o => ({
+        id: o._id.toString(),
+        title: this.productFormatter.getLocalizedText(o.title, language),
+        value: o.value,
+        type: o.type,
+      })),
+      sortOptions: [
+        {
+          label: language === Language.EN ? 'New Arrivals' : 'وصل حديثاً',
+          value: ProductSort.NEW_ARRIVALS,
+        },
+        {
+          label: language === Language.EN ? 'Best Sellers' : 'الأكثر مبيعاً',
+          value: ProductSort.BEST_SELLERS,
+        },
+        {
+          label: language === Language.EN ? 'Offers' : 'العروض',
+          value: ProductSort.OFFERS,
+        },
+        {
+          label: language === Language.EN ? 'Price: Low to High' : 'السعر: من الأقل للأعلى',
+          value: ProductSort.PRICE_LOW_TO_HIGH,
+        },
+        {
+          label: language === Language.EN ? 'Price: High to Low' : 'السعر: من الأعلى للأقل',
+          value: ProductSort.PRICE_HIGH_TO_LOW,
+        },
+      ],
+    };
+  }
+
   async findAll(
     filterDto: FilterProductDto,
     language: Language = Language.AR,
@@ -79,16 +153,35 @@ export class ProductService {
 
     const query: any = { isActive: true };
 
+    // 1. Categories Filter
+    const catIds = [];
     if (filterDto.categoryId && Types.ObjectId.isValid(filterDto.categoryId)) {
-      query.categoryId = new Types.ObjectId(filterDto.categoryId);
+      catIds.push(new Types.ObjectId(filterDto.categoryId));
     }
-    if (
-      filterDto.subCategoryId &&
-      Types.ObjectId.isValid(filterDto.subCategoryId)
-    ) {
-      query.subCategoryId = new Types.ObjectId(filterDto.subCategoryId);
+    if (filterDto.categoryIds && filterDto.categoryIds.length > 0) {
+      filterDto.categoryIds.forEach(id => {
+        if (Types.ObjectId.isValid(id)) catIds.push(new Types.ObjectId(id));
+      });
+    }
+    if (catIds.length > 0) {
+      query.categoryId = { $in: catIds };
     }
 
+    // 2. SubCategories Filter
+    const subCatIds = [];
+    if (filterDto.subCategoryId && Types.ObjectId.isValid(filterDto.subCategoryId)) {
+      subCatIds.push(new Types.ObjectId(filterDto.subCategoryId));
+    }
+    if (filterDto.subCategoryIds && filterDto.subCategoryIds.length > 0) {
+      filterDto.subCategoryIds.forEach(id => {
+        if (Types.ObjectId.isValid(id)) subCatIds.push(new Types.ObjectId(id));
+      });
+    }
+    if (subCatIds.length > 0) {
+      query.subCategoryId = { $in: subCatIds };
+    }
+
+    // 3. Sizes Filter
     if (filterDto.sizes && filterDto.sizes.length > 0) {
       const validSizeIds = filterDto.sizes.filter((id) =>
         Types.ObjectId.isValid(id),
@@ -100,6 +193,7 @@ export class ProductService {
       }
     }
 
+    // 4. Colors Filter
     if (filterDto.colors && filterDto.colors.length > 0) {
       const validColorIds = filterDto.colors.filter((id) =>
         Types.ObjectId.isValid(id),
@@ -111,6 +205,7 @@ export class ProductService {
       }
     }
 
+    // 5. Price Filter
     if (filterDto.minPrice !== undefined || filterDto.maxPrice !== undefined) {
       query.price = {};
       if (filterDto.minPrice !== undefined) {
@@ -121,6 +216,12 @@ export class ProductService {
       }
     }
 
+    // 6. Rating Filter
+    if (filterDto.rating !== undefined) {
+      query.avgRating = { $gte: filterDto.rating };
+    }
+
+    // 7. Search Filter
     if (filterDto.search) {
       const searchRegex = new RegExp(filterDto.search, 'i');
       query.$or = [
@@ -131,6 +232,76 @@ export class ProductService {
       ];
     }
 
+    // 8. Offers Filter
+    if (filterDto.offerIds && filterDto.offerIds.length > 0) {
+      const selectedOffers = await this.offerModel.find({
+        _id: { $in: filterDto.offerIds.map(id => new Types.ObjectId(id)) },
+        isActive: true
+      });
+
+      const offerQueryParts = [];
+      for (const offer of selectedOffers) {
+        if (offer.scope === 'global') {
+          // If it's global, we just need to ensure the product is active (which is already in query)
+          // But to be specific to "this" offer, we might not have a direct field.
+          // However, a product with a global offer means ALL products match it.
+          // If user selected a specific global offer, they want to see all products matching it.
+          // We can just add a dummy true match or skip adding restriction.
+          // For now, let's assume global means "all products".
+          continue;
+        } else if (offer.scope === 'product' && offer.productId) {
+          offerQueryParts.push({ _id: offer.productId });
+        } else if (offer.scope === 'category' && offer.categoryId) {
+          offerQueryParts.push({ categoryId: offer.categoryId });
+        } else if (offer.scope === 'sub_category' && offer.subCategoryId) {
+          offerQueryParts.push({ subCategoryId: offer.subCategoryId });
+        }
+      }
+
+      if (offerQueryParts.length > 0) {
+        // If there were specific offers (not just global), add them to query
+        // If there was a global offer, then all products match, so we don't need to add anything to query.$or
+        // Unless there were NO global offers, then we must match one of the specific ones.
+        const hasGlobal = selectedOffers.some(o => o.scope === 'global');
+        if (!hasGlobal) {
+          if (query.$or) {
+            // If search already added $or, we need to be careful. 
+            // Let's use $and to combine them.
+            const existingOr = query.$or;
+            delete query.$or;
+            query.$and = [{ $or: existingOr }, { $or: offerQueryParts }];
+          } else {
+            query.$or = offerQueryParts;
+          }
+        }
+      }
+    }
+
+    // 9. Sorting
+    let sort: any = { createdAt: -1 };
+    if (filterDto.sortBy) {
+      switch (filterDto.sortBy) {
+        case ProductSort.NEW_ARRIVALS:
+          sort = { createdAt: -1 };
+          break;
+        case ProductSort.BEST_SELLERS:
+          sort = { salesCount: -1 };
+          break;
+        case ProductSort.PRICE_LOW_TO_HIGH:
+          sort = { price: 1 };
+          break;
+        case ProductSort.PRICE_HIGH_TO_LOW:
+          sort = { price: -1 };
+          break;
+        case ProductSort.OFFERS:
+          // This is tricky as offer presence isn't a direct field.
+          // For now sort by newest, but usually 'offers' sort means products with biggest discounts first.
+          // We'd need an aggregation for this. Let's stick to createdAt for now or just skip.
+          sort = { createdAt: -1 };
+          break;
+      }
+    }
+
     const [products, totalProducts] = await Promise.all([
       this.productModel
         .find(query)
@@ -138,7 +309,7 @@ export class ProductService {
         .populate({ path: 'colors', model: 'Color' })
         .populate('categoryId', 'name')
         .populate('subCategoryId', 'name')
-        .sort({ createdAt: -1 })
+        .sort(sort)
         .skip(skip)
         .limit(limit)
         .exec(),

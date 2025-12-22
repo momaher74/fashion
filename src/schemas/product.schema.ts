@@ -67,6 +67,15 @@ export class Product {
   @Prop({ default: 0 })
   views: number; // Track product views for popularity
 
+  @Prop({ default: 0 })
+  salesCount: number; // Track sales for best sellers
+
+  @Prop({ default: 0, min: 0, max: 5 })
+  avgRating: number;
+
+  @Prop({ default: 0 })
+  totalRatings: number;
+
   createdAt?: Date;
   updatedAt?: Date;
 }

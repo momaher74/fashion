@@ -1,25 +1,50 @@
-import { IsOptional, IsString, IsNumber, IsArray, Min } from 'class-validator';
+import { IsOptional, IsString, IsNumber, IsArray, Min, IsEnum, IsMongoId } from 'class-validator';
 import { Type } from 'class-transformer';
-import { Language } from '../../common/enums/language.enum';
+import { ProductSort } from '../../common/enums/product-sort.enum';
 
 export class FilterProductDto {
   @IsOptional()
-  @IsString()
-  categoryId?: string; // Category ObjectId
-
-  @IsOptional()
-  @IsString()
-  subCategoryId?: string; // SubCategory ObjectId
+  @IsMongoId()
+  categoryId?: string; // Singular for backward compatibility
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
+  @IsMongoId({ each: true })
+  categoryIds?: string[];
+
+  @IsOptional()
+  @IsMongoId()
+  subCategoryId?: string; // Singular for backward compatibility
+
+  @IsOptional()
+  @IsArray()
+  @IsMongoId({ each: true })
+  subCategoryIds?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsMongoId({ each: true })
   sizes?: string[];
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
+  @IsMongoId({ each: true })
   colors?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsMongoId({ each: true })
+  offerIds?: string[]; // For filtering by specific discounts/offers
+
+  @IsOptional()
+  @IsEnum(ProductSort)
+  sortBy?: ProductSort;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  rating?: number;
 
   @IsOptional()
   @Type(() => Number)

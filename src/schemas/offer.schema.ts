@@ -20,6 +20,12 @@ export class Offer {
   @Prop({ type: Types.ObjectId, ref: 'Product', required: false })
   productId?: Types.ObjectId;
 
+  @Prop({ type: Types.ObjectId, ref: 'Category', required: false })
+  categoryId?: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: 'SubCategory', required: false })
+  subCategoryId?: Types.ObjectId;
+
   @Prop({ type: String, enum: OfferType, required: true })
   type: OfferType;
 

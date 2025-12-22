@@ -42,12 +42,15 @@ export class HomeService {
       ]);
 
     // Format offers for the home response
-    const formattedOffers = rawOffers.map(offer => ({
+    const formattedOffers = rawOffers.map((offer) => ({
       id: offer._id.toString(),
       title: this.productFormatter.getLocalizedText(offer.title, language),
       type: offer.type,
       value: offer.value,
       scope: offer.scope,
+      productId: offer.productId?.toString(),
+      categoryId: offer.categoryId?.toString(),
+      subCategoryId: offer.subCategoryId?.toString(),
       endDate: offer.endDate,
       image: offer.image,
     }));

@@ -9,6 +9,8 @@ import { CommonModule } from '../common/common.module';
 import { UserModule } from '../user/user.module';
 import { Color, ColorSchema } from '../schemas/color.schema';
 import { Size, SizeSchema } from '../schemas/size.schema';
+import { Category, CategorySchema } from '../schemas/category.schema';
+import { SubCategory, SubCategorySchema } from '../schemas/subcategory.schema';
 
 
 @Module({
@@ -17,8 +19,10 @@ import { Size, SizeSchema } from '../schemas/size.schema';
       { name: Product.name, schema: ProductSchema },
       { name: Offer.name, schema: OfferSchema },
       { name: Cart.name, schema: CartSchema },
-      { name: Size.name, schema: SizeSchema },   // <-- add this
-      { name: Color.name, schema: ColorSchema }, // <-- add this
+      { name: Size.name, schema: SizeSchema },
+      { name: Color.name, schema: ColorSchema },
+      { name: Category.name, schema: CategorySchema },
+      { name: SubCategory.name, schema: SubCategorySchema },
     ]),
     CommonModule,
     UserModule,
@@ -27,5 +31,5 @@ import { Size, SizeSchema } from '../schemas/size.schema';
   providers: [ProductService],
   exports: [ProductService],
 })
-export class ProductModule {}
+export class ProductModule { }
 

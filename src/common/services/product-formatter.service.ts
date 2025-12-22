@@ -63,15 +63,26 @@ export class ProductFormatterService {
   ): FormattedProduct {
 
     const now = new Date();
-    const activeOffers = offers.filter(
-      (offer) =>
-        offer.isActive &&
-        offer.startDate <= now &&
-        offer.endDate >= now &&
-        (offer.scope === OfferScope.GLOBAL ||
-          (offer.scope === OfferScope.PRODUCT &&
-            offer.productId?.toString() === product._id.toString())),
-    );
+    const activeOffers = offers.filter((offer) => {
+      if (!offer.isActive || offer.startDate > now || offer.endDate < now) {
+        return false;
+      }
+
+      switch (offer.scope) {
+        case OfferScope.GLOBAL:
+          return true;
+        case OfferScope.PRODUCT:
+          return offer.productId?.toString() === product._id.toString();
+        case OfferScope.CATEGORY:
+          const prodCategoryId = (product.categoryId as any)._id?.toString() || product.categoryId?.toString();
+          return offer.categoryId?.toString() === prodCategoryId;
+        case OfferScope.SUB_CATEGORY:
+          const prodSubCategoryId = (product.subCategoryId as any)._id?.toString() || product.subCategoryId?.toString();
+          return offer.subCategoryId?.toString() === prodSubCategoryId;
+        default:
+          return false;
+      }
+    });
 
     let bestOffer: OfferDocument | null = null;
     let bestDiscount = 0;
