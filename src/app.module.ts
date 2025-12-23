@@ -20,6 +20,7 @@ import { BannerModule } from './banner/banner.module';
 import { HomeModule } from './home/home.module';
 import { StoriesModule } from './stories/stories.module';
 import { WishlistModule } from './wishlist/wishlist.module';
+import { AddressModule } from './address/address.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { WishlistModule } from './wishlist/wishlist.module';
     HomeModule,
     StoriesModule,
     WishlistModule,
+    AddressModule
   ],
 })
 export class AppModule { }

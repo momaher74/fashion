@@ -10,4 +10,5 @@ export * from './size.schema';
 export * from './category.schema';
 export * from './subcategory.schema';
 export * from './banner.schema';
+export * from './address.schema';
 

@@ -57,7 +57,19 @@ export class HomeService {
       image: offer.image,
     }));
 
+    let userPayload = null;
+    if (userId) {
+      const user = await this.userModel.findById(userId).select('name email').exec();
+      if (user) {
+        userPayload = {
+          name: user.name,
+          email: user.email,
+        };
+      }
+    }
+
     return {
+      user: userPayload,
       offers: formattedOffers,
       stories,
       categories,

@@ -35,10 +35,13 @@ export class Order {
 
   @Prop({ type: Object })
   shippingAddress: {
-    street: string;
-    city: string;
-    country: string;
+    name: string;
     phone: string;
+    city: string;
+    governorate: string;
+    country: string;
+    street: string;
+    notes?: string;
   };
 
   @Prop()

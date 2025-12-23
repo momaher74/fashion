@@ -3,6 +3,7 @@ import { Document, Types } from 'mongoose';
 import { Role } from '../common/enums/role.enum';
 import { Language } from '../common/enums/language.enum';
 import { AuthProvider } from '../common/enums/auth-provider.enum';
+import { Address, AddressSchema } from './address.schema';
 
 export type UserDocument = User & Document;
 
@@ -37,6 +38,9 @@ export class User {
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Product' }], default: [] })
   wishlist: Types.ObjectId[];
+
+  @Prop({ type: [AddressSchema], default: [] })
+  addresses: Address[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
