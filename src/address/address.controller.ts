@@ -10,7 +10,7 @@ import {
 import { AddressService } from './address.service';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
-import { Address } from '@/schemas/address.schema';
+import { Address } from '../schemas/address.schema'; // ✅ fixed
 
 @Controller('addresses')
 export class AddressController {
