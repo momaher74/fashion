@@ -354,13 +354,20 @@ export class ProductService {
     language: Language = Language.AR,
     userId?: string,
   ) {
+    // Validate ID format first
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('id.invalid');
+    }
+
     const product = await this.productModel
       .findById(id)
       .populate({ path: 'sizes', model: 'Size' })
       .populate({ path: 'colors', model: 'Color' })
       .populate('categoryId', 'name')
       .populate('subCategoryId', 'name');
+
     if (!product) {
+      console.warn(`Product with ID ${id} not found in database`);
       throw new NotFoundException('product.not_found');
     }
 
@@ -374,24 +381,39 @@ export class ProductService {
     // Check if product is in cart and get quantity
     let inCart = false;
     let quantity = 0;
+    let variantsWithCart = formatted.variants.map((v) => ({ ...v, inCart: 0 }));
 
     if (userId) {
       const cart = await this.cartModel.findOne({
         userId: new Types.ObjectId(userId),
       });
       if (cart) {
-        const cartItem = cart.items.find(
+        const productCartItems = cart.items.filter(
           (item) => item.productId.toString() === id,
         );
-        if (cartItem) {
+
+        if (productCartItems.length > 0) {
           inCart = true;
-          quantity = cartItem.quantity;
+          quantity = productCartItems.reduce((acc, item) => acc + item.quantity, 0);
+
+          variantsWithCart = formatted.variants.map((v) => {
+            const match = productCartItems.find(
+              (item) =>
+                item.size.toString() === v.sizeId &&
+                item.color.toString() === v.colorId,
+            );
+            return {
+              ...v,
+              inCart: match ? match.quantity : 0,
+            };
+          });
         }
       }
     }
 
     const result = {
       ...formatted,
+      variants: variantsWithCart,
       inCart,
       quantity,
       inFavourite: false,
