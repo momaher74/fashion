@@ -136,7 +136,7 @@ export class CartService {
     );
 
     if (existingItemIndex >= 0) {
-      cart.items[existingItemIndex].quantity += addToCartDto.quantity;
+      cart.items[existingItemIndex].quantity = addToCartDto.quantity;
     } else {
       cart.items.push({
         productId: new Types.ObjectId(addToCartDto.productId),
