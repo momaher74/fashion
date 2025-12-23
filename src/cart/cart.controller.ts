@@ -24,7 +24,7 @@ export class CartController {
   constructor(
     private readonly cartService: CartService,
     private readonly userService: UserService,
-  ) {}
+  ) { }
 
   @Get()
   async getCart(
@@ -41,29 +41,29 @@ export class CartController {
     return this.cartService.addToCart(dbUser._id.toString(), addToCartDto);
   }
 
-  @Patch('items/:index')
+  @Patch('items/:itemId')
   async updateCartItem(
     @CurrentUser() user: any,
-    @Param('index') index: string,
+    @Param('itemId') itemId: string,
     @Body() updateDto: UpdateCartItemDto,
   ) {
     const dbUser = await this.userService.findById(user.id);
     return this.cartService.updateCartItem(
       dbUser._id.toString(),
-      parseInt(index),
+      itemId,
       updateDto,
     );
   }
 
-  @Delete('items/:index')
+  @Delete('items/:itemId')
   async removeFromCart(
     @CurrentUser() user: any,
-    @Param('index') index: string,
+    @Param('itemId') itemId: string,
   ) {
     const dbUser = await this.userService.findById(user.id);
     return this.cartService.removeFromCart(
       dbUser._id.toString(),
-      parseInt(index),
+      itemId,
     );
   }
 

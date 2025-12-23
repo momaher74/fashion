@@ -29,36 +29,7 @@ export class CartService {
     return cart;
   }
 
-  async addToCart(userId: string, addToCartDto: AddToCartDto) {
-    const cart = await this.getOrCreateCart(userId);
-    const product = await this.productModel.findById(addToCartDto.productId);
-    if (!product) {
-      throw new NotFoundException('cart.product_not_found');
-    }
-
-    // Check if item already exists with same size and color
-    const existingItemIndex = cart.items.findIndex(
-      (item) =>
-        item.productId.toString() === addToCartDto.productId &&
-        item.size.toString() === addToCartDto.size &&
-        item.color.toString() === addToCartDto.color,
-    );
-
-    if (existingItemIndex >= 0) {
-      cart.items[existingItemIndex].quantity += addToCartDto.quantity;
-    } else {
-      cart.items.push({
-        productId: new Types.ObjectId(addToCartDto.productId),
-        size: new Types.ObjectId(addToCartDto.size),
-        color: new Types.ObjectId(addToCartDto.color),
-        quantity: addToCartDto.quantity,
-      });
-    }
-
-    return cart.save();
-  }
-
-  async getCart(userId: string, language: Language = Language.AR) {
+  private async getFormattedCart(userId: string, language: Language = Language.AR) {
     const cart = await this.getOrCreateCart(userId);
     const user = await this.userService.findById(userId);
     const lang = user.language || language;
@@ -121,6 +92,8 @@ export class CartService {
         );
 
         return {
+          id: (item as any)._id.toString(), // Cart Item ID
+          _id: (item as any)._id.toString(), // Duplicate for compatibility if needed
           productId: item.productId.toString(),
           product: {
             ...formatted,
@@ -147,37 +120,81 @@ export class CartService {
     };
   }
 
+  async addToCart(userId: string, addToCartDto: AddToCartDto) {
+    const cart = await this.getOrCreateCart(userId);
+    const product = await this.productModel.findById(addToCartDto.productId);
+    if (!product) {
+      throw new NotFoundException('cart.product_not_found');
+    }
+
+    // Check if item already exists with same size and color
+    const existingItemIndex = cart.items.findIndex(
+      (item) =>
+        item.productId.toString() === addToCartDto.productId &&
+        item.size.toString() === addToCartDto.size &&
+        item.color.toString() === addToCartDto.color,
+    );
+
+    if (existingItemIndex >= 0) {
+      cart.items[existingItemIndex].quantity += addToCartDto.quantity;
+    } else {
+      cart.items.push({
+        productId: new Types.ObjectId(addToCartDto.productId),
+        size: new Types.ObjectId(addToCartDto.size),
+        color: new Types.ObjectId(addToCartDto.color),
+        quantity: addToCartDto.quantity,
+      } as any); // Casting to any to avoid strict type checks on _id creation which mongoose handles
+    }
+
+    await cart.save();
+    return this.getFormattedCart(userId); // Return formatted cart
+  }
+
+  async getCart(userId: string, language: Language = Language.AR) {
+    return this.getFormattedCart(userId, language);
+  }
+
   async updateCartItem(
     userId: string,
-    itemIndex: number,
+    itemId: string,
     updateDto: UpdateCartItemDto,
   ) {
     const cart = await this.getOrCreateCart(userId);
-    if (itemIndex < 0 || itemIndex >= cart.items.length) {
-      throw new BadRequestException('cart.invalid_index');
+
+    const item = (cart.items as any).id(itemId);
+    if (!item) {
+      throw new NotFoundException('cart.item_not_found');
     }
 
     if (updateDto.quantity !== undefined) {
-      cart.items[itemIndex].quantity = updateDto.quantity;
+      item.quantity = updateDto.quantity;
     }
 
-    return cart.save();
+    await cart.save();
+    return this.getFormattedCart(userId);
   }
 
-  async removeFromCart(userId: string, itemIndex: number) {
+  async removeFromCart(userId: string, itemId: string) {
     const cart = await this.getOrCreateCart(userId);
-    if (itemIndex < 0 || itemIndex >= cart.items.length) {
-      throw new BadRequestException('cart.invalid_index');
+
+    const itemIndex = cart.items.findIndex(
+      (item: any) => item._id.toString() === itemId
+    );
+
+    if (itemIndex === -1) {
+      throw new NotFoundException('cart.item_not_found');
     }
 
     cart.items.splice(itemIndex, 1);
-    return cart.save();
+    await cart.save();
+    return this.getFormattedCart(userId);
   }
 
   async clearCart(userId: string) {
     const cart = await this.getOrCreateCart(userId);
     cart.items = [];
-    return cart.save();
+    await cart.save();
+    return { items: [], total: 0, currency: 'EGP' };
   }
 }
 
