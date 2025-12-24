@@ -6,6 +6,7 @@ import { Cart, CartDocument } from '../schemas/cart.schema';
 import { Product, ProductDocument } from '../schemas/product.schema';
 import { Offer, OfferDocument } from '../schemas/offer.schema';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { CheckoutInfoDto } from './dto/checkout-info.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { ProductFormatterService } from '../common/services/product-formatter.service';
 import { UserService } from '../user/user.service';
@@ -13,6 +14,8 @@ import { NotificationService } from '../notification/notification.service';
 import { OrderStatus } from '../common/enums/order-status.enum';
 import { PaymentStatus } from '../common/enums/payment-status.enum';
 import { Language } from '../common/enums/language.enum';
+import { ShippingType } from '../common/enums/shipping-type.enum';
+import { PaymentMethod } from '../common/enums/payment-method.enum';
 
 @Injectable()
 export class OrderService {
@@ -104,10 +107,20 @@ export class OrderService {
       }),
     );
 
-    const totalAmount = orderItems.reduce(
+    const itemsTotal = orderItems.reduce(
       (sum, item) => sum + item.finalPrice * item.quantity,
       0,
     );
+
+    // Calculate shipping cost
+    let shippingCost = 0;
+    if (createOrderDto.shippingType === ShippingType.EXPRESS) {
+      shippingCost = 100; // Example express cost
+    } else {
+      shippingCost = 50; // Example normal cost
+    }
+
+    const totalAmount = itemsTotal + shippingCost;
 
     const currency = orderItems[0]?.currency || 'EGP';
 
@@ -122,6 +135,7 @@ export class OrderService {
           ? PaymentStatus.PENDING
           : PaymentStatus.PENDING,
       shippingAddress: createOrderDto.shippingAddress,
+      shippingType: createOrderDto.shippingType,
       notes: createOrderDto.notes,
       status: OrderStatus.PENDING,
     });
@@ -190,6 +204,98 @@ export class OrderService {
 
   async findAllOrders() {
     return this.orderModel.find().sort({ createdAt: -1 }).populate('userId').exec();
+  }
+
+  async getCheckoutInfo(userId: string, checkoutInfoDto: CheckoutInfoDto) {
+    const cart = await this.cartModel.findOne({
+      userId: new Types.ObjectId(userId),
+    });
+
+    if (!cart || cart.items.length === 0) {
+      throw new BadRequestException('cart.empty');
+    }
+
+    const user = await this.userService.findById(userId);
+    const offers = await this.offerModel.find({ isActive: true }).exec();
+    const language = user.language || Language.AR;
+
+    // Calculate subtotal
+    const orderItems = await Promise.all(
+      cart.items.map(async (item) => {
+        const product = await this.productModel.findById(item.productId);
+        if (!product) {
+          throw new NotFoundException('product.not_found');
+        }
+
+        const formatted = this.productFormatter.formatProduct(
+          product,
+          offers,
+          language,
+        );
+
+        const variant = product.variants?.find(
+          (v) =>
+            v.sizeId.toString() === item.size.toString() &&
+            v.colorId.toString() === item.color.toString(),
+        );
+
+        let itemFinalPrice = formatted.finalPrice;
+        if (variant && variant.price !== undefined) {
+          itemFinalPrice = variant.price;
+          // Apply offers to variant price... (simplified for now as basic price exists)
+          const activeOffers = offers.filter(
+            (offer) =>
+              offer.isActive &&
+              new Date() >= offer.startDate &&
+              new Date() <= offer.endDate &&
+              (offer.scope === 'global' ||
+                (offer.scope === 'product' &&
+                  offer.productId?.toString() === product._id.toString())),
+          );
+
+          let bestDiscount = 0;
+          for (const offer of activeOffers) {
+            const discount =
+              offer.type === 'percentage'
+                ? (variant.price * offer.value) / 100
+                : Math.min(offer.value, variant.price);
+            if (discount > bestDiscount) {
+              bestDiscount = discount;
+            }
+          }
+          itemFinalPrice = Math.max(0, variant.price - bestDiscount);
+        }
+
+        return {
+          finalPrice: itemFinalPrice,
+          quantity: item.quantity
+        }
+      }),
+    );
+
+    const subtotal = orderItems.reduce(
+      (sum, item) => sum + item.finalPrice * item.quantity,
+      0
+    );
+
+    // Calculate shipping cost
+    let shippingCost = 0;
+    if (checkoutInfoDto.shippingType === ShippingType.EXPRESS) {
+      shippingCost = 100; // Example express cost
+    } else {
+      shippingCost = 50; // Example normal cost
+    }
+
+    const totalAmount = subtotal + shippingCost;
+
+    return {
+      subtotal,
+      shippingCost,
+      totalAmount,
+      currency: 'EGP', // Assuming EGP for now
+      shippingType: checkoutInfoDto.shippingType,
+      paymentMethod: checkoutInfoDto.paymentMethod,
+    };
   }
 }
 

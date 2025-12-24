@@ -13,7 +13,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 @Controller('payments')
 @UseGuards(JwtAuthGuard)
 export class PaymentController {
-  constructor(private readonly paymentService: PaymentService) {}
+  constructor(private readonly paymentService: PaymentService) { }
 
   @Post('jumiapay/create')
   async createJumiaPaySession(@Body() createPaymentDto: CreatePaymentDto) {
@@ -31,6 +31,11 @@ export class PaymentController {
   @Post('cash-on-delivery/confirm')
   async confirmCashOnDelivery(@Body() createPaymentDto: CreatePaymentDto) {
     return this.paymentService.confirmCashOnDelivery(createPaymentDto.orderId);
+  }
+
+  @Post('stripe/create-intent')
+  async createStripePaymentIntent(@Body() createPaymentDto: CreatePaymentDto) {
+    return this.paymentService.createStripePaymentIntent(createPaymentDto.orderId);
   }
 }
 

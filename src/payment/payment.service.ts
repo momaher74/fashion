@@ -8,6 +8,7 @@ import { PaymentStatus } from '../common/enums/payment-status.enum';
 import { OrderStatus } from '../common/enums/order-status.enum';
 import { NotificationService } from '../notification/notification.service';
 import axios from 'axios';
+import Stripe from 'stripe';
 
 @Injectable()
 export class PaymentService {
@@ -17,6 +18,7 @@ export class PaymentService {
   private jumiaPayMerchantId: string;
   private jumiaPayTestMode: boolean;
   private jumiaPayCallbackUrl: string;
+  private stripe: Stripe;
 
   constructor(
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
@@ -29,6 +31,9 @@ export class PaymentService {
     this.jumiaPayMerchantId = this.configService.get<string>('JUMIAPAY_MERCHANT_ID') || '';
     this.jumiaPayTestMode = this.configService.get<string>('JUMIAPAY_TEST_MODE') === 'true';
     this.jumiaPayCallbackUrl = this.configService.get<string>('JUMIAPAY_CALLBACK_URL') || '';
+    this.stripe = new Stripe(this.configService.get<string>('STRIPE_SECRET_KEY') || '', {
+      apiVersion: '2025-12-15.clover',
+    });
   }
 
   async createJumiaPaySession(orderId: string) {
@@ -123,6 +128,38 @@ export class PaymentService {
     // Cash on delivery is confirmed when order is created
     // Payment status remains PENDING until delivery
     return { message: 'Order confirmed for cash on delivery' };
+  }
+
+  async createStripePaymentIntent(orderId: string) {
+    const order = await this.orderModel.findById(orderId);
+    if (!order) {
+      throw new NotFoundException('order.not_found');
+    }
+
+    if (order.paymentMethod !== PaymentMethod.CARD) {
+      throw new BadRequestException('order.payment_method_invalid');
+    }
+
+    try {
+      const paymentIntent = await this.stripe.paymentIntents.create({
+        amount: Math.round(order.totalAmount * 100), // Stripe expects amount in cents
+        currency: order.currency.toLowerCase(),
+        metadata: {
+          orderId: order._id.toString(),
+        },
+      });
+
+      order.paymentTransactionId = paymentIntent.id;
+      await order.save();
+
+      return {
+        clientSecret: paymentIntent.client_secret,
+        publishableKey: this.configService.get<string>('STRIPE_PUBLISHABLE_KEY'),
+      };
+    } catch (error) {
+      console.error('Stripe payment intent creation failed:', error);
+      throw new BadRequestException('payment.stripe_session_failed');
+    }
   }
 }
 

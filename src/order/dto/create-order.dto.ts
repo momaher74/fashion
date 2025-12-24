@@ -8,6 +8,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { PaymentMethod } from '../../common/enums/payment-method.enum';
+import { ShippingType } from '../../common/enums/shipping-type.enum';
 
 class ShippingAddressDto {
   @IsString()
@@ -36,6 +37,10 @@ export class CreateOrderDto {
   @Type(() => ShippingAddressDto)
   @IsNotEmpty()
   shippingAddress: ShippingAddressDto;
+
+  @IsEnum(ShippingType)
+  @IsNotEmpty()
+  shippingType: ShippingType;
 
   @IsString()
   @IsOptional()

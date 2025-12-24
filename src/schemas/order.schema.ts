@@ -4,6 +4,7 @@ import { OrderStatus } from '../common/enums/order-status.enum';
 import { PaymentMethod } from '../common/enums/payment-method.enum';
 import { PaymentStatus } from '../common/enums/payment-status.enum';
 import { OrderItem, OrderItemSchema } from './order-item.schema';
+import { ShippingType } from '../common/enums/shipping-type.enum';
 
 export type OrderDocument = Order & Document;
 
@@ -43,6 +44,9 @@ export class Order {
     street: string;
     notes?: string;
   };
+
+  @Prop({ type: String, enum: ShippingType, default: ShippingType.NORMAL })
+  shippingType: ShippingType;
 
   @Prop()
   notes?: string;

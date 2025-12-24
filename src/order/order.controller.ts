@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { CheckoutInfoDto } from './dto/checkout-info.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -23,7 +24,7 @@ export class OrderController {
   constructor(
     private readonly orderService: OrderService,
     private readonly userService: UserService,
-  ) {}
+  ) { }
 
   @Post()
   async create(@CurrentUser() user: any, @Body() createOrderDto: CreateOrderDto) {
@@ -58,6 +59,18 @@ export class OrderController {
   @Roles(Role.ADMIN)
   async findAllOrders() {
     return this.orderService.findAllOrders();
+  }
+
+  @Post('checkout-info')
+  async getCheckoutInfo(
+    @CurrentUser() user: any,
+    @Body() checkoutInfoDto: CheckoutInfoDto,
+  ) {
+    const dbUser = await this.userService.findById(user.id);
+    return this.orderService.getCheckoutInfo(
+      dbUser._id.toString(),
+      checkoutInfoDto,
+    );
   }
 }
 
