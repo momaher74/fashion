@@ -206,7 +206,7 @@ export class OrderService {
     return this.orderModel.find().sort({ createdAt: -1 }).populate('userId').exec();
   }
 
-  async getCheckoutInfo(userId: string, checkoutInfoDto: CheckoutInfoDto) {
+  async getCheckoutInfo(userId: string) {
     const cart = await this.cartModel.findOne({
       userId: new Types.ObjectId(userId),
     });
@@ -278,23 +278,35 @@ export class OrderService {
       0
     );
 
-    // Calculate shipping cost
-    let shippingCost = 0;
-    if (checkoutInfoDto.shippingType === ShippingType.EXPRESS) {
-      shippingCost = 100; // Example express cost
-    } else {
-      shippingCost = 50; // Example normal cost
-    }
-
-    const totalAmount = subtotal + shippingCost;
-
     return {
       subtotal,
-      shippingCost,
-      totalAmount,
-      currency: 'EGP', // Assuming EGP for now
-      shippingType: checkoutInfoDto.shippingType,
-      paymentMethod: checkoutInfoDto.paymentMethod,
+      currency: 'EGP',
+      shippingOptions: [
+        {
+          type: ShippingType.NORMAL,
+          price: 50,
+          label: 'Normal Delivery (3-5 days)',
+        },
+        {
+          type: ShippingType.EXPRESS,
+          price: 100,
+          label: 'Express Delivery (1-2 days)',
+        },
+      ],
+      paymentMethods: [
+        {
+          type: PaymentMethod.CASH_ON_DELIVERY,
+          label: 'Cash on Delivery',
+        },
+        {
+          type: PaymentMethod.CARD,
+          label: 'Credit/Debit Card (Stripe)',
+        },
+        // {
+        //   type: PaymentMethod.JUMIAPAY,
+        //   label: 'JumiaPay',
+        // }
+      ],
     };
   }
 }

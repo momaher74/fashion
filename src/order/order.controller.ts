@@ -6,7 +6,9 @@ import {
   Param,
   Patch,
   UseGuards,
+  BadRequestException,
 } from '@nestjs/common';
+import { Types } from 'mongoose';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { CheckoutInfoDto } from './dto/checkout-info.dto';
@@ -31,6 +33,15 @@ export class OrderController {
     const dbUser = await this.userService.findById(user.id);
     return this.orderService.create(dbUser._id.toString(), createOrderDto);
   }
+  @Get('checkout-info')
+  async getCheckoutInfo(
+    @CurrentUser() user: any,
+  ) {
+    const dbUser = await this.userService.findById(user.id);
+    return this.orderService.getCheckoutInfo(
+      dbUser._id.toString(),
+    );
+  }
 
   @Get()
   async findAll(@CurrentUser() user: any) {
@@ -40,6 +51,9 @@ export class OrderController {
 
   @Get(':id')
   async findOne(@CurrentUser() user: any, @Param('id') id: string) {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('Invalid Order ID');
+    }
     const dbUser = await this.userService.findById(user.id);
     return this.orderService.findOne(id, dbUser._id.toString());
   }
@@ -61,16 +75,6 @@ export class OrderController {
     return this.orderService.findAllOrders();
   }
 
-  @Post('checkout-info')
-  async getCheckoutInfo(
-    @CurrentUser() user: any,
-    @Body() checkoutInfoDto: CheckoutInfoDto,
-  ) {
-    const dbUser = await this.userService.findById(user.id);
-    return this.orderService.getCheckoutInfo(
-      dbUser._id.toString(),
-      checkoutInfoDto,
-    );
-  }
+
 }
 
