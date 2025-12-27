@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Order, OrderDocument } from '../schemas/order.schema';
@@ -27,6 +27,7 @@ export class OrderService {
     private productFormatter: ProductFormatterService,
     private userService: UserService,
     private notificationService: NotificationService,
+    @Inject(forwardRef(() => PaymentService))
     private paymentService: PaymentService,
   ) { }
 
@@ -149,26 +150,10 @@ export class OrderService {
 
     await order.save();
 
-    // Decrease stock and increase sales count for each item
-    for (const item of cart.items) {
-      await this.productModel.updateOne(
-        {
-          _id: item.productId,
-          'variants.sizeId': item.size,
-          'variants.colorId': item.color,
-        },
-        {
-          $inc: {
-            'variants.$.stock': -item.quantity,
-            salesCount: item.quantity,
-          },
-        },
-      );
+    // Only perform side effects (stock reduction, cart clearing) immediately for COD
+    if (createOrderDto.paymentMethod !== PaymentMethod.CARD) {
+      await this.performOrderSideEffects(order._id.toString(), userId);
     }
-
-    // Clear cart after order creation
-    cart.items = [];
-    await cart.save();
 
     // Send notification
     try {
@@ -190,6 +175,34 @@ export class OrderService {
     }
 
     return order;
+  }
+
+  async performOrderSideEffects(orderId: string, userId: string) {
+    const order = await this.orderModel.findById(orderId);
+    if (!order) return;
+
+    // Decrease stock and increase sales count for each item
+    for (const item of order.items) {
+      await this.productModel.updateOne(
+        {
+          _id: item.productId,
+          'variants.sizeId': item.size,
+          'variants.colorId': item.color,
+        },
+        {
+          $inc: {
+            'variants.$.stock': -item.quantity,
+            salesCount: item.quantity,
+          },
+        },
+      );
+    }
+
+    // Clear cart for the user
+    await this.cartModel.updateOne(
+      { userId: new Types.ObjectId(userId) },
+      { $set: { items: [] } }
+    );
   }
 
   async findAll(userId: string) {

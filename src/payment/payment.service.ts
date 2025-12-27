@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -7,6 +7,7 @@ import { PaymentMethod } from '../common/enums/payment-method.enum';
 import { PaymentStatus } from '../common/enums/payment-status.enum';
 import { OrderStatus } from '../common/enums/order-status.enum';
 import { NotificationService } from '../notification/notification.service';
+import { OrderService } from '../order/order.service';
 import axios from 'axios';
 import Stripe from 'stripe';
 
@@ -24,6 +25,8 @@ export class PaymentService {
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
     private configService: ConfigService,
     private notificationService: NotificationService,
+    @Inject(forwardRef(() => OrderService))
+    private orderService: OrderService,
   ) {
     this.jumiaPayApiUrl = this.configService.get<string>('JUMIAPAY_API_URL') || 'https://api.jumiapay.com';
     this.jumiaPayApiKey = this.configService.get<string>('JUMIAPAY_API_KEY') || '';
@@ -96,6 +99,9 @@ export class PaymentService {
       order.paymentStatus = PaymentStatus.PAID;
       order.status = OrderStatus.PAID;
       await order.save();
+
+      // Perform side effects (stock reduction, cart clearing)
+      await this.orderService.performOrderSideEffects(order._id.toString(), order.userId.toString());
 
       // Send payment notification
       try {
@@ -231,10 +237,13 @@ export class PaymentService {
       const orderId = session.metadata.orderId;
 
       const order = await this.orderModel.findById(orderId);
-      if (order) {
+      if (order && order.paymentStatus !== PaymentStatus.PAID) {
         order.paymentStatus = PaymentStatus.PAID;
         order.status = OrderStatus.PAID;
         await order.save();
+
+        // Perform side effects (stock reduction, cart clearing)
+        await this.orderService.performOrderSideEffects(order._id.toString(), order.userId.toString());
 
         try {
           await this.notificationService.notifyOrderPaid(
@@ -274,6 +283,9 @@ export class PaymentService {
         order.paymentStatus = PaymentStatus.PAID;
         order.status = OrderStatus.PAID;
         await order.save();
+
+        // Perform side effects (stock reduction, cart clearing)
+        await this.orderService.performOrderSideEffects(order._id.toString(), order.userId.toString());
 
         try {
           await this.notificationService.notifyOrderPaid(
