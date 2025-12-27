@@ -249,5 +249,9 @@ export class PaymentService {
 
     return { received: true };
   }
+
+  async getOrderStatus(orderId: string) {
+    return this.orderModel.findById(orderId).select('paymentStatus status').exec();
+  }
 }
 

@@ -7,12 +7,13 @@ import {
   UseGuards,
   Headers,
   Req,
+  NotFoundException,
 } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
-@Controller('payments')
+@Controller('payment')
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) { }
 
@@ -48,6 +49,30 @@ export class PaymentController {
     @Req() request: any,
   ) {
     return this.paymentService.handleStripeWebhook(request.rawBody || request.body, signature);
+  }
+
+  @Get('success')
+  async paymentSuccess(@Query('order_id') orderId: string) {
+    const order = await this.paymentService.getOrderStatus(orderId);
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+    return {
+      message: 'Payment completed successfully!',
+      orderId: orderId,
+      status: 'success',
+      paymentStatus: order.paymentStatus,
+      orderStatus: order.status
+    };
+  }
+
+  @Get('cancel')
+  async paymentCancel(@Query('order_id') orderId: string) {
+    return {
+      message: 'Payment was cancelled.',
+      orderId: orderId,
+      status: 'cancel'
+    };
   }
 }
 
