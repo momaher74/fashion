@@ -130,6 +130,60 @@ export class PaymentService {
     return { message: 'Order confirmed for cash on delivery' };
   }
 
+  async createStripeCheckoutSession(orderId: string) {
+    const order = await this.orderModel.findById(orderId);
+    if (!order) {
+      throw new NotFoundException('order.not_found');
+    }
+
+    if (order.paymentMethod !== PaymentMethod.CARD) {
+      throw new BadRequestException('order.payment_method_invalid');
+    }
+
+    try {
+      const session = await this.stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: order.items.map((item) => ({
+          price_data: {
+            currency: order.currency.toLowerCase(),
+            product_data: {
+              name: item.name.en || item.name.ar || 'Product',
+              images: item.images,
+            },
+            unit_amount: Math.round(item.finalPrice * 100),
+          },
+          quantity: item.quantity,
+        })).concat([{
+          price_data: {
+            currency: order.currency.toLowerCase(),
+            product_data: {
+              name: 'Shipping Cost',
+            },
+            unit_amount: Math.round(order.shippingCost * 100),
+          },
+          quantity: 1,
+        }] as any),
+        mode: 'payment',
+        success_url: `${this.configService.get('FRONTEND_URL') || 'http://localhost:3000/api'}/payment/success?order_id=${order._id}`,
+        cancel_url: `${this.configService.get('FRONTEND_URL') || 'http://localhost:3000/api'}/payment/cancel?order_id=${order._id}`,
+        metadata: {
+          orderId: order._id.toString(),
+        },
+      });
+
+      order.paymentTransactionId = session.id;
+      await order.save();
+
+      return {
+        paymentUrl: session.url,
+        sessionId: session.id,
+      };
+    } catch (error) {
+      console.error('Stripe session creation failed:', error);
+      throw new BadRequestException('payment.stripe_session_failed');
+    }
+  }
+
   async createStripePaymentIntent(orderId: string) {
     const order = await this.orderModel.findById(orderId);
     if (!order) {
@@ -160,6 +214,40 @@ export class PaymentService {
       console.error('Stripe payment intent creation failed:', error);
       throw new BadRequestException('payment.stripe_session_failed');
     }
+  }
+
+  async handleStripeWebhook(payload: any, signature: string) {
+    const webhookSecret = this.configService.get<string>('STRIPE_WEBHOOK_SECRET');
+    let event: Stripe.Event;
+
+    try {
+      event = this.stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+    } catch (err) {
+      throw new BadRequestException(`Webhook Error: ${err.message}`);
+    }
+
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const orderId = session.metadata.orderId;
+
+      const order = await this.orderModel.findById(orderId);
+      if (order) {
+        order.paymentStatus = PaymentStatus.PAID;
+        order.status = OrderStatus.PAID;
+        await order.save();
+
+        try {
+          await this.notificationService.notifyOrderPaid(
+            order._id.toString(),
+            order.userId.toString(),
+          );
+        } catch (error) {
+          console.error('Failed to send payment notification:', error);
+        }
+      }
+    }
+
+    return { received: true };
   }
 }
 

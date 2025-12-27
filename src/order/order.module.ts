@@ -9,6 +9,7 @@ import { Offer, OfferSchema } from '../schemas/offer.schema';
 import { CommonModule } from '../common/common.module';
 import { UserModule } from '../user/user.module';
 import { NotificationModule } from '../notification/notification.module';
+import { PaymentModule } from '../payment/payment.module';
 
 @Module({
   imports: [
@@ -21,10 +22,11 @@ import { NotificationModule } from '../notification/notification.module';
     CommonModule,
     UserModule,
     NotificationModule,
+    PaymentModule,
   ],
   controllers: [OrderController],
   providers: [OrderService],
   exports: [OrderService],
 })
-export class OrderModule {}
+export class OrderModule { }
 

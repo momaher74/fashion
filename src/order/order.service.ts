@@ -15,6 +15,7 @@ import { PaymentStatus } from '../common/enums/payment-status.enum';
 import { Language } from '../common/enums/language.enum';
 import { ShippingType } from '../common/enums/shipping-type.enum';
 import { PaymentMethod } from '../common/enums/payment-method.enum';
+import { PaymentService } from '../payment/payment.service';
 
 @Injectable()
 export class OrderService {
@@ -26,6 +27,7 @@ export class OrderService {
     private productFormatter: ProductFormatterService,
     private userService: UserService,
     private notificationService: NotificationService,
+    private paymentService: PaymentService,
   ) { }
 
   async create(userId: string, createOrderDto: CreateOrderDto) {
@@ -129,10 +131,7 @@ export class OrderService {
       totalAmount,
       currency,
       paymentMethod: createOrderDto.paymentMethod,
-      paymentStatus:
-        createOrderDto.paymentMethod === 'cash_on_delivery'
-          ? PaymentStatus.PENDING
-          : PaymentStatus.PENDING,
+      paymentStatus: PaymentStatus.PENDING,
       shippingAddress: createOrderDto.shippingAddress,
       shippingType: createOrderDto.shippingType,
       shippingCost,
@@ -154,6 +153,15 @@ export class OrderService {
       );
     } catch (error) {
       console.error('Failed to send order created notification:', error);
+    }
+
+    // Handle payment link generation for card payments
+    if (createOrderDto.paymentMethod === PaymentMethod.CARD) {
+      const paymentResponse = await this.paymentService.createStripeCheckoutSession(order._id.toString());
+      return {
+        ...order.toObject(),
+        paymentUrl: paymentResponse.paymentUrl,
+      };
     }
 
     return order;
