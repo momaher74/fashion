@@ -6,7 +6,6 @@ import { Cart, CartDocument } from '../schemas/cart.schema';
 import { Product, ProductDocument } from '../schemas/product.schema';
 import { Offer, OfferDocument } from '../schemas/offer.schema';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { CheckoutInfoDto } from './dto/checkout-info.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { ProductFormatterService } from '../common/services/product-formatter.service';
 import { UserService } from '../user/user.service';
