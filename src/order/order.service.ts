@@ -63,6 +63,14 @@ export class OrderService {
             v.colorId.toString() === item.color.toString(),
         );
 
+        if (!variant) {
+          throw new BadRequestException('product.variant_not_found');
+        }
+
+        if (variant.stock < item.quantity) {
+          throw new BadRequestException(`product.out_of_stock: ${product.name[language] || product.name.en}`);
+        }
+
         // If variant has a different price, recalculate final price
         let itemFinalPrice = formatted.finalPrice;
         let itemBasePrice = product.price;
@@ -140,6 +148,23 @@ export class OrderService {
     });
 
     await order.save();
+
+    // Decrease stock and increase sales count for each item
+    for (const item of cart.items) {
+      await this.productModel.updateOne(
+        {
+          _id: item.productId,
+          'variants.sizeId': item.size,
+          'variants.colorId': item.color,
+        },
+        {
+          $inc: {
+            'variants.$.stock': -item.quantity,
+            salesCount: item.quantity,
+          },
+        },
+      );
+    }
 
     // Clear cart after order creation
     cart.items = [];
