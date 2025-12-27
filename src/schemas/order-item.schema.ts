@@ -1,13 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { Multilingual } from '../common/interfaces/multilingual.interface';
 
 export type OrderItemDocument = OrderItem & Document;
 
 @Schema()
 export class OrderItem {
-  @Prop({ required: true })
-  productId: string;
+  @Prop({ type: Types.ObjectId, ref: 'Product', required: true })
+  productId: Types.ObjectId;
 
   @Prop({ type: Object, required: true })
   name: Multilingual;
@@ -27,11 +27,11 @@ export class OrderItem {
   @Prop({ required: true })
   currency: string;
 
-  @Prop({ required: true })
-  size: string;
+  @Prop({ type: Types.ObjectId, ref: 'Size', required: true })
+  size: Types.ObjectId;
 
-  @Prop({ required: true })
-  color: string;
+  @Prop({ type: Types.ObjectId, ref: 'Color', required: true })
+  color: Types.ObjectId;
 
   @Prop({ required: true })
   quantity: number;

@@ -103,7 +103,7 @@ export class OrderService {
         }
 
         return {
-          productId: product._id.toString(),
+          productId: product._id,
           name: product.name,
           description: product.description,
           images: product.images,
