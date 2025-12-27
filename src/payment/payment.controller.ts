@@ -53,7 +53,7 @@ export class PaymentController {
 
   @Get('success')
   async paymentSuccess(@Query('order_id') orderId: string) {
-    const order = await this.paymentService.getOrderStatus(orderId);
+    const order = await this.paymentService.verifyStripeSession(orderId);
     if (!order) {
       throw new NotFoundException('Order not found');
     }

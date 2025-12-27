@@ -251,7 +251,44 @@ export class PaymentService {
   }
 
   async getOrderStatus(orderId: string) {
-    return this.orderModel.findById(orderId).select('paymentStatus status').exec();
+    return this.orderModel.findById(orderId).select('paymentStatus status paymentTransactionId').exec();
+  }
+
+  async verifyStripeSession(orderId: string) {
+    const order = await this.orderModel.findById(orderId);
+    if (!order) {
+      throw new NotFoundException('order.not_found');
+    }
+
+    if (order.paymentStatus === PaymentStatus.PAID) {
+      return order;
+    }
+
+    if (!order.paymentTransactionId || !order.paymentTransactionId.startsWith('cs_')) {
+      return order;
+    }
+
+    try {
+      const session = await this.stripe.checkout.sessions.retrieve(order.paymentTransactionId);
+      if (session.payment_status === 'paid') {
+        order.paymentStatus = PaymentStatus.PAID;
+        order.status = OrderStatus.PAID;
+        await order.save();
+
+        try {
+          await this.notificationService.notifyOrderPaid(
+            order._id.toString(),
+            order.userId.toString(),
+          );
+        } catch (error) {
+          console.error('Failed to send payment notification:', error);
+        }
+      }
+      return order;
+    } catch (error) {
+      console.error('Stripe session retrieval failed:', error);
+      return order;
+    }
   }
 }
 
