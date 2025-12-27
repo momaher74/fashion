@@ -136,6 +136,7 @@ export class OrderService {
           : PaymentStatus.PENDING,
       shippingAddress: createOrderDto.shippingAddress,
       shippingType: createOrderDto.shippingType,
+      shippingCost,
       notes: createOrderDto.notes,
       status: OrderStatus.PENDING,
     });

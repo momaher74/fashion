@@ -36,17 +36,17 @@ export class Order {
 
   @Prop({ type: Object })
   shippingAddress: {
-    name: string;
-    phone: string;
-    city: string;
-    governorate: string;
-    country: string;
     street: string;
-    notes?: string;
+    city: string;
+    country: string;
+    phone: string;
   };
 
   @Prop({ type: String, enum: ShippingType, default: ShippingType.NORMAL })
   shippingType: ShippingType;
+
+  @Prop({ required: true, default: 0 })
+  shippingCost: number;
 
   @Prop()
   notes?: string;
